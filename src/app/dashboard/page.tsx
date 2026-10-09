@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  
+
   // Controleer of de gebruiker is ingelogd
   const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -41,10 +41,10 @@ export default async function DashboardPage() {
       </header>
 
       <main className="max-w-4xl mx-auto space-y-8">
-        
+
         {/* Voortgangsoverzicht */}
         <div className="grid gap-6 md:grid-cols-2">
-          
+
           {/* Hoofdstuk 1 */}
           <div className="bg-[var(--section-bg)] p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 relative overflow-hidden flex flex-col justify-between">
             <div>
@@ -61,15 +61,15 @@ export default async function DashboardPage() {
                 Maak je idee concreet, ontwerp je ideale klantpaspoort in de Persona Studio en formuleer je belofte.
               </p>
             </div>
-            
-            <Link 
-              href="/h1" 
+
+            <Link
+              href="/h1"
               className="inline-flex items-center justify-center gap-2 bg-[var(--surface)] border border-black/15 dark:border-white/15 px-4 py-2.5 rounded-xl font-bold text-xs hover:border-[#dfb25a] hover:text-[#dfb25a] transition-all shadow-sm"
             >
               Open Hoofdstuk 1 (Persona Studio) →
             </Link>
           </div>
-          
+
           {/* Hoofdstuk 2: Nu Ontgrendeld! */}
           <div className="bg-gradient-to-br from-[var(--section-bg)] to-amber-950/20 p-6 rounded-2xl shadow-lg border-2 border-[#dfb25a]/50 relative overflow-hidden flex flex-col justify-between">
             <div>
@@ -88,8 +88,8 @@ export default async function DashboardPage() {
               </p>
             </div>
 
-            <Link 
-              href="/h2" 
+            <Link
+              href="/h2"
               className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black px-4 py-2.5 rounded-xl font-black text-xs shadow-md hover:brightness-110 transition-all uppercase tracking-wider"
             >
               Start Hoofdstuk 2 (Naam &amp; KvK) →
