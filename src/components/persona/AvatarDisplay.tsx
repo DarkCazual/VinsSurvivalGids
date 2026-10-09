@@ -18,34 +18,14 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
   const skinShadow = "#E8A386";
   const eyeColor = "#1F2937";
   
-  // STRALEND BLOND HAARPALET (Origineel haarmodel, maar blond ipv bruin)
-  // "de eerste versie was prima... maak het inplaats van bruin gewoon blond"
-  let hairColor = "#E5BF55";      // Rijk warm goudblond
-  let hairHighlight = "#FEF08A";  // Lichte zonneblonde highlights
-  let eyebrowColor = "#9C6E23";   // Warme natuurlijke wenkbrauwen bij blond haar
-  let hasWrinkles = false;
-  let hasGlasses = false;
+  // STRALEND BLOND HAAR (Volledig dekkend, geen gat of transparantie meer!)
+  const hairColor = "#E5BF55";      // Rijk warm goudblond
+  const hairHighlight = "#FEF08A";  // Lichte zonneblonde highlights
+  const hairLowlight = "#C6922C";   // Donkerblonde aanzet / diepte
+  const eyebrowColor = "#9C6E23";   // Warme wenkbrauwen passend bij blond
 
-  if (ageGroup === "18-25") {
-    hairColor = "#ECC665";
-    hairHighlight = "#FFF0A3";
-    eyebrowColor = "#A17327";
-  } else if (ageGroup === "26-40") {
-    hairColor = "#E2B852";
-    hairHighlight = "#FDE68A";
-    eyebrowColor = "#966A22";
-  } else if (ageGroup === "41-64") {
-    hairColor = "#D4AF37";
-    hairHighlight = "#FEF3C7";
-    eyebrowColor = "#8C6320";
-    hasWrinkles = true;
-  } else if (ageGroup === "65+") {
-    hairColor = "#EAE0C8"; // Licht champagne zilver-blond
-    hairHighlight = "#FAF5E9";
-    eyebrowColor = "#9CA3AF";
-    hasWrinkles = true;
-    hasGlasses = true;
-  }
+  const hasWrinkles = ageGroup === "41-64" || ageGroup === "65+";
+  const hasGlasses = ageGroup === "65+";
 
   // Kledingkleur en accessoires op basis van inkomen
   let clothingColor = "#4B5563"; // budget (grijze hoodie)
@@ -102,7 +82,6 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
         <div className="relative z-10 w-full flex justify-center py-2">
           <div className="relative w-64 h-64 sm:w-72 sm:h-72">
             
-            {/* Halo / Cirkel ring achter het personage */}
             <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-2xl overflow-visible">
               <defs>
                 <linearGradient id="avatarGlow" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -227,21 +206,44 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
               <rect x="135" y="168" width="30" height="38" rx="4" fill={skinShadow} />
               <path d="M 135 180 Q 150 194 165 180 L 165 206 L 135 206 Z" fill={skinTone} opacity="0.7" />
 
-              {/* ===== HOOFD & GEZICHT ===== */}
+              {/* ===== VOLLEDIG DEKKENDE ACHTERSTE HAARMASSA (VOORKOMT ELK GAT OF TRANSPARANTIE NAAR DE ACHTERGROND) ===== */}
+              {gender === "vrouw" ? (
+                <g id="backHairWoman" filter="url(#softShadow)">
+                  {/* Massieve volle haardos achter het hoofd en over de schouders */}
+                  <path
+                    d="M 86 240 C 76 195, 78 115, 96 70 C 114 46, 186 46, 204 70 C 222 115, 224 195, 214 240 C 204 242, 192 210, 188 165 L 112 165 C 108 210, 96 242, 86 240 Z"
+                    fill={hairLowlight}
+                  />
+                  {/* Vallende blonde lokken langs de hals */}
+                  <path
+                    d="M 90 238 C 84 190, 88 135, 98 120 C 104 120, 108 175, 104 220 Z"
+                    fill={hairColor}
+                  />
+                  <path
+                    d="M 210 238 C 216 190, 212 135, 202 120 C 196 120, 192 175, 196 220 Z"
+                    fill={hairColor}
+                  />
+                  {/* Glansstrepen op vallend haar */}
+                  <path d="M 92 145 Q 88 185 98 225" stroke={hairHighlight} strokeWidth="2.5" fill="none" opacity="0.8" strokeLinecap="round" />
+                  <path d="M 208 145 Q 212 185 202 225" stroke={hairHighlight} strokeWidth="2.5" fill="none" opacity="0.8" strokeLinecap="round" />
+                </g>
+              ) : (
+                <g id="backHairMan">
+                  {/* Nette blonde nektapering voor de man achter het hoofd */}
+                  <path
+                    d="M 108 155 C 108 182, 118 192, 134 192 L 166 192 C 182 192, 192 182, 192 155 Z"
+                    fill={hairLowlight}
+                  />
+                </g>
+              )}
+
+              {/* ===== HOOFD & GEZICHT (MET VOLLEDIG MASSIEVE SCHEDEL) ===== */}
               <g id="head">
-                {gender === "man" ? (
-                  /* Mannelijke kaaklijn (strak, niet te zwaar) */
-                  <path
-                    d="M 112 128 C 112 170, 128 186, 150 186 C 172 186, 188 170, 188 128 C 188 88, 112 88, 112 128 Z"
-                    fill={skinTone}
-                  />
-                ) : (
-                  /* Vrouwelijke zachte kaaklijn */
-                  <path
-                    d="M 114 128 C 114 174, 128 186, 150 186 C 172 186, 186 174, 186 128 C 186 86, 114 86, 114 128 Z"
-                    fill={skinTone}
-                  />
-                )}
+                {/* Volledige dekkende schedel en kaak van kruin (y:75) tot kin (y:186) */}
+                <path
+                  d="M 112 135 C 112 172, 128 186, 150 186 C 172 186, 188 172, 188 135 C 188 75, 112 75, 112 135 Z"
+                  fill={skinTone}
+                />
 
                 {/* Oren */}
                 <circle cx="110" cy="140" r="7" fill={skinTone} />
@@ -305,52 +307,71 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 )}
               </g>
 
-              {/* ===== HAARDRACHT (EXACT HET ORIGINELE MODEL, MAAR BLOND IPV BRUIN) ===== */}
+              {/* ===== BLOND HAAR VOORZIJDE (MASSIEF, VOL VOLUME, GEEN GAT OF BRUINE LEEGTE!) ===== */}
               <g id="hair" filter="url(#softShadow)">
                 {gender === "man" ? (
-                  /* Mannen blond kapsel */
-                  ageGroup === "65+" ? (
-                    /* Senior man: zilver-blond dunner haar aan zijkanten */
-                    <g fill={hairColor}>
-                      <path d="M 108 135 C 105 105, 115 95, 128 92 C 124 105, 115 125, 112 145 Z" />
-                      <path d="M 192 135 C 195 105, 185 95, 172 92 C 176 105, 185 125, 188 145 Z" />
-                      <path d="M 125 90 C 138 84, 162 84, 175 90 C 160 86, 140 86, 125 90 Z" opacity="0.6" fill={hairHighlight} />
-                    </g>
-                  ) : ageGroup === "18-25" ? (
-                    /* Trendy moderne fade / kuif voor jongere in blond */
-                    <g fill={hairColor}>
-                      <path d="M 106 130 C 106 88, 120 72, 150 72 C 180 72, 194 88, 194 130 C 194 110, 185 95, 150 95 C 115 95, 106 110, 106 130 Z" />
-                      <path d="M 120 85 C 140 70, 170 75, 182 82 C 160 78, 135 80, 120 85 Z" fill={hairHighlight} />
-                    </g>
-                  ) : (
-                    /* Nette strakke scheiding voor millennial / ervaren in blond */
-                    <g fill={hairColor}>
-                      <path d="M 106 132 C 106 88, 125 80, 150 80 C 175 80, 194 88, 194 132 C 194 112, 185 98, 150 98 C 115 98, 106 112, 106 132 Z" />
-                      <path d="M 125 86 C 145 80, 170 82, 185 89 C 160 84, 138 84, 125 86 Z" fill={hairHighlight} />
-                    </g>
-                  )
+                  /* MANNEN BLOND KAPSEL: Sluit de schedel volledig af van kruin (y:52) tot voorhoofd (y:105) */
+                  <g>
+                    {/* Volledige massieve blonde haardos over de kruin */}
+                    <path
+                      d="M 104 140 C 98 90, 108 52, 150 50 C 192 52, 202 90, 196 140 C 190 114, 182 100, 166 104 C 150 108, 142 98, 130 102 C 118 106, 110 115, 104 140 Z"
+                      fill={hairColor}
+                    />
+                    {/* Diepte / aanzet bij de slapen */}
+                    <path
+                      d="M 106 130 C 104 80, 118 62, 150 62 C 182 62, 196 80, 194 130 C 184 105, 168 96, 150 96 C 132 96, 116 105, 106 130 Z"
+                      fill={hairLowlight}
+                      opacity="0.28"
+                    />
+                    {/* Lichtblonde highlights bovenop de kruin */}
+                    <path
+                      d="M 118 70 C 135 56, 165 56, 182 70 C 165 64, 135 64, 118 70 Z"
+                      fill={hairHighlight}
+                    />
+                    {/* Speelse blonde lok/kuif over het voorhoofd */}
+                    <path
+                      d="M 128 98 C 144 88, 160 88, 172 98 C 160 93, 142 93, 128 98 Z"
+                      fill={hairHighlight}
+                    />
+                  </g>
                 ) : (
-                  /* Vrouwen blond kapsel */
-                  ageGroup === "65+" ? (
-                    /* Senior dame: verzorgd krullend blond/zilver haar */
-                    <g fill={hairColor}>
-                      <path d="M 102 145 C 98 100, 110 75, 150 75 C 190 75, 202 100, 198 145 C 205 130, 204 95, 185 82 C 165 72, 135 72, 115 82 C 96 95, 95 130, 102 145 Z" />
-                    </g>
-                  ) : ageGroup === "18-25" ? (
-                    /* Trendy lang blond haar met highlights */
-                    <g fill={hairColor}>
-                      <path d="M 100 175 C 95 110, 110 78, 150 78 C 190 78, 205 110, 200 175 C 206 140, 205 95, 185 85 C 165 76, 135 76, 115 85 C 95 95, 94 140, 100 175 Z" />
-                      <path d="M 98 160 C 95 185, 105 210, 112 230 C 110 205, 105 180, 102 160 Z" />
-                      <path d="M 202 160 C 205 185, 195 210, 188 230 C 190 205, 195 180, 198 160 Z" />
-                    </g>
-                  ) : (
-                    /* Zakelijk chic halflang blond kapsel */
-                    <g fill={hairColor}>
-                      <path d="M 102 165 C 98 105, 112 80, 150 80 C 188 80, 202 105, 198 165 C 204 135, 202 96, 185 86 C 165 78, 135 78, 115 86 C 98 96, 96 135, 102 165 Z" />
-                      <path d="M 100 155 C 96 180, 104 205, 110 215 C 108 195, 104 175, 102 155 Z" />
-                      <path d="M 200 155 C 204 180, 196 205, 190 215 C 192 195, 196 175, 198 155 Z" />
-                    </g>
-                  )
+                  /* VROUWEN BLOND KAPSEL: Volledig massief volume over de kruin + elegante lokken */
+                  <g>
+                    {/* Volledige massieve blonde kruin die de schedel en het voorhoofd prachtig omlijst */}
+                    <path
+                      d="M 94 150 C 88 80, 106 48, 150 46 C 194 48, 212 80, 206 150 C 198 116, 186 98, 168 102 C 150 106, 140 98, 130 100 C 114 104, 102 116, 94 150 Z"
+                      fill={hairColor}
+                    />
+                    {/* Dieptepartij voor extra natuurlijk blond effect */}
+                    <path
+                      d="M 100 135 C 98 75, 118 58, 150 58 C 182 58, 202 75, 200 135 C 190 102, 168 92, 150 92 C 132 92, 110 102, 100 135 Z"
+                      fill={hairLowlight}
+                      opacity="0.25"
+                    />
+                    {/* Zon-opgelichte blonde glans bovenop */}
+                    <path
+                      d="M 118 65 C 135 52, 165 52, 182 65 C 165 58, 135 58, 118 65 Z"
+                      fill={hairHighlight}
+                    />
+                    {/* Zachte blonde pony / lok accenten op het voorhoofd */}
+                    <path
+                      d="M 124 101 C 140 93, 162 93, 176 101 C 162 96, 138 96, 124 101 Z"
+                      fill={hairHighlight}
+                      opacity="0.9"
+                    />
+                    {/* Voorste vallende lokken langs het gezicht */}
+                    <path
+                      d="M 94 140 C 90 178, 88 215, 98 244 C 104 246, 107 236, 104 212 C 100 182, 102 152, 98 138 Z"
+                      fill={hairColor}
+                    />
+                    <path
+                      d="M 206 140 C 210 178, 212 215, 202 244 C 196 246, 193 236, 196 212 C 200 182, 198 152, 202 138 Z"
+                      fill={hairColor}
+                    />
+                    {/* Glansstrepen op de vallende lokken */}
+                    <path d="M 96 150 Q 92 195 101 235" stroke={hairHighlight} strokeWidth="2" fill="none" opacity="0.85" strokeLinecap="round" />
+                    <path d="M 204 150 Q 208 195 199 235" stroke={hairHighlight} strokeWidth="2" fill="none" opacity="0.85" strokeLinecap="round" />
+                  </g>
                 )}
               </g>
 

@@ -80,7 +80,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
     { value: "18-25", label: "18 - 25 jaar", desc: "Jongvolwassen, student of starter", icon: "🌱" },
     { value: "26-40", label: "26 - 40 jaar", desc: "Millennial, gezinsstichter, ambitieus", icon: "🚀" },
     { value: "41-64", label: "41 - 64 jaar", desc: "Ervaren, gevestigd vermogen, doorgewinterd", icon: "💼" },
-    { value: "65+", label: "65+ jaar", desc: "Senior, gepensioneerd, levensgenieter (zilver haar & bril)", icon: "👑" },
+    { value: "65+", label: "65+ jaar", desc: "Senior, gepensioneerd, levensgenieter", icon: "👑" },
   ];
 
   const incomeOptions: { value: IncomeLevel; label: string; clothes: string; desc: string; stars: string }[] = [
@@ -326,13 +326,8 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                       >
                         <span className="text-2xl">{opt.icon}</span>
                         <div>
-                          <div className="font-bold text-sm flex items-center gap-2">
+                          <div className="font-bold text-sm">
                             {opt.label}
-                            {opt.value === "65+" && (
-                              <span className="text-[10px] bg-amber-500/20 text-amber-500 font-semibold px-1.5 py-0.2 rounded">
-                                Zilver haar
-                              </span>
-                            )}
                           </div>
                           <div className="text-xs opacity-70">{opt.desc}</div>
                         </div>
