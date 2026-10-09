@@ -2,6 +2,26 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function proxy(request: NextRequest) {
+  const { searchParams, pathname } = request.nextUrl
+
+  // Vang OAuth codes op die door Supabase fallback naar de homepage ('/') of een andere route worden gestuurd
+  if (searchParams.has('code') && pathname !== '/auth/callback') {
+    const callbackUrl = new URL('/auth/callback', request.url)
+    searchParams.forEach((value, key) => {
+      callbackUrl.searchParams.set(key, value)
+    })
+    return NextResponse.redirect(callbackUrl)
+  }
+
+  // Vang token_hash op van e-mail verificaties als die op de homepage belanden
+  if (searchParams.has('token_hash') && pathname !== '/auth/callback') {
+    const callbackUrl = new URL('/auth/callback', request.url)
+    searchParams.forEach((value, key) => {
+      callbackUrl.searchParams.set(key, value)
+    })
+    return NextResponse.redirect(callbackUrl)
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
