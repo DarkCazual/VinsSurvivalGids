@@ -157,9 +157,6 @@ export function H1Client({ userEmail }: H1ClientProps) {
           >
             <UserCheck className="w-4 h-4" />
             <span>2. Persona Studio &amp; Paspoort</span>
-            <span className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-full font-mono">
-              GAME
-            </span>
           </button>
 
           <button

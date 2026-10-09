@@ -10,6 +10,11 @@ export type JobSector =
   | 'kantoor' 
   | 'tech' 
   | 'zorg' 
+  | 'hulpdiensten'
+  | 'onderwijs'
+  | 'politiek'
+  | 'student'
+  | 'werkzoekend'
   | 'gepensioneerd';
 
 export type Housing = 'stad' | 'dorp' | 'buitengebied';

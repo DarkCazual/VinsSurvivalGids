@@ -16,24 +16,12 @@ import {
 import { AvatarDisplay } from "./AvatarDisplay";
 import { PersonaPassport } from "./PersonaPassport";
 import { 
-  User, 
-  Users, 
-  Sparkles, 
   ArrowRight, 
   ArrowLeft, 
   Check, 
   Award, 
-  Zap, 
-  DollarSign, 
-  Briefcase, 
-  Home, 
-  Heart, 
-  Globe, 
-  Compass, 
-  HelpCircle,
-  Clock,
-  Layers,
-  Flame
+  Sparkles,
+  HelpCircle
 } from "lucide-react";
 
 interface PersonaWizardProps {
@@ -92,7 +80,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
     { value: "18-25", label: "18 - 25 jaar", desc: "Jongvolwassen, student of starter", icon: "🌱" },
     { value: "26-40", label: "26 - 40 jaar", desc: "Millennial, gezinsstichter, ambitieus", icon: "🚀" },
     { value: "41-64", label: "41 - 64 jaar", desc: "Ervaren, gevestigd vermogen, doorgewinterd", icon: "💼" },
-    { value: "65+", label: "65+ jaar", desc: "Senior, gepensioneerd, levensgenieter", icon: "👑" },
+    { value: "65+", label: "65+ jaar", desc: "Senior, gepensioneerd, levensgenieter (zilver haar & bril)", icon: "👑" },
   ];
 
   const incomeOptions: { value: IncomeLevel; label: string; clothes: string; desc: string; stars: string }[] = [
@@ -106,41 +94,46 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
     { 
       value: "modaal", 
       label: "Modaal / Gemiddeld", 
-      clothes: "Smart knitwear / nette polo", 
-      desc: "Waardeert betrouwbaarheid en goede prijs-kwaliteitverhouding.",
+      clothes: "Smart navy trui met boordje", 
+      desc: "Waardeert betrouwbaarheid en een goede prijs-kwaliteitverhouding.",
       stars: "★★☆"
     },
     { 
       value: "hoog", 
       label: "Hoog / Vermogend", 
-      clothes: "Luxe maatpak met gouden accenten", 
+      clothes: "Luxe maatpak met pochet & gouden horloge", 
       desc: "Wil absolute topkwaliteit en ontzorging. Prijs is ondergeschikt.",
       stars: "★★★"
     },
   ];
 
   const jobOptions: { value: JobSector; label: string; icon: string; desc: string }[] = [
-    { value: "vakman", label: "Vakman / Techniek", icon: "🔨", desc: "Bouw, montage, installatie" },
-    { value: "ondernemer", label: "Ondernemer / Directeur", icon: "💼", desc: "MKB, ZZP of leidinggevend" },
-    { value: "kantoor", label: "Kantoor / Corporate", icon: "🏢", desc: "Finance, overheid, consultancy" },
-    { value: "tech", label: "Tech / Creatief", icon: "💻", desc: "Software, design, marketing" },
-    { value: "zorg", label: "Zorg & Welzijn", icon: "🩺", desc: "Onderwijs, medisch, sociaal" },
-    { value: "gepensioneerd", label: "Gepensioneerd", icon: "🏖️", desc: "Veel vrije tijd en rust" },
+    { value: "vakman", label: "Vakman / Techniek", icon: "🔨", desc: "Bouw, installatie, montage" },
+    { value: "hulpdiensten", label: "Hulpdiensten", icon: "🚨", desc: "Politie, brandweer, ambulance" },
+    { value: "ondernemer", label: "Ondernemer / Directeur", icon: "💼", desc: "MKB, ZZP of directie" },
+    { value: "politiek", label: "Politiek, Overheid & Recht", icon: "⚖️", desc: "Beleid, justitie, advocatuur" },
+    { value: "onderwijs", label: "Onderwijs & Wetenschap", icon: "📚", desc: "Docent, leraar, onderzoeker" },
+    { value: "zorg", label: "Zorg & Welzijn", icon: "🩺", desc: "Medisch, verpleging, maatschappelijk" },
+    { value: "tech", label: "Tech / IT / Creatief", icon: "💻", desc: "Software, design, marketing" },
+    { value: "kantoor", label: "Kantoor / Bedrijfsleven", icon: "🏢", desc: "Finance, HR, corporate" },
+    { value: "student", label: "Student", icon: "🎓", desc: "MBO, HBO of WO studie" },
+    { value: "werkzoekend", label: "Werkzoekend", icon: "🔄", desc: "Tussen banen, heroriëntatie" },
+    { value: "gepensioneerd", label: "Gepensioneerd", icon: "🏖️", desc: "Vrije tijd, pensioen, rust" },
   ];
 
   const familyOptions: { value: FamilySituation; label: string; desc: string }[] = [
     { value: "single", label: "Alleenstaand", desc: "Beslist autonoom en snel" },
-    { value: "samenwonend", label: "Samenwonend", desc: "Overlegt met partner" },
+    { value: "samenwonend", label: "Samenwonend", desc: "Overlegt samen met partner" },
     { value: "jong_gezin", label: "Jong gezin met baby/peuters", desc: "Drukke levensfase, veiligheid & gemak" },
     { value: "tieners", label: "Gezin met opgroeiende tieners", desc: "Ruimte en praktische oplossingen nodig" },
     { value: "spoed_ouders", label: "Tijdelijk / Noodsituatie", desc: "Bijv. woont met kids bij ouders, hoge druk!" },
-    { value: "senior_alleen", label: "Leeg nest / Alleen", desc: "Comfort en overzicht" },
+    { value: "senior_alleen", label: "Leeg nest / Senior", desc: "Rust, comfort en overzicht" },
   ];
 
   const housingOptions: { value: Housing; label: string; desc: string; icon: string }[] = [
     { value: "stad", label: "Grote stad", desc: "Appartement / dynamische omgeving", icon: "🏙️" },
     { value: "dorp", label: "Dorp of buitenwijk", desc: "Eengezinswoning met tuin", icon: "🏡" },
-    { value: "buitengebied", label: "Buitengebied", desc: "Vrijstaande woning / rust", icon: "🌲" },
+    { value: "buitengebied", label: "Buitengebied", desc: "Vrijstaande woning / landelijk", icon: "🌲" },
   ];
 
   const lifestyleTags = [
@@ -215,14 +208,14 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#dfb25a]/20 text-[#dfb25a] border border-[#dfb25a]/40">
-                Level {currentStep} van {totalSteps}
+                Stap {currentStep} van {totalSteps}
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-gradient-brand">
                 Persona Studio: Karakter Creator
               </h2>
             </div>
-            <p className="text-xs sm:text-sm opacity-70 mt-1">
-              Kies de eigenschappen van jouw ideale klant. Zie zijn uiterlijk direct rechts transformeren!
+            <p className="text-xs sm:text-sm opacity-75 mt-1">
+              Beantwoord de strategische vragen over jouw ideale klant. Zie het personage rechts direct transformeren!
             </p>
           </div>
 
@@ -243,7 +236,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
         </div>
       </div>
 
-      {/* Main Grid: Links het Keuzemenu, Rechts de Live Avatar */}
+      {/* Main Grid: Links het Keuzemenu met Vragen, Rechts de Live Avatar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* LINKER KOLOM: Het Keuzemenu (7 van 12 breed) */}
@@ -256,19 +249,22 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                 <div>
                   <h3 className="text-lg font-black flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-gradient-brand text-white text-xs flex items-center justify-center font-bold">1</span>
-                    Kies Geslacht &amp; Leeftijd
+                    Demografie: Geslacht &amp; Leeftijd
                   </h3>
                   <p className="text-xs opacity-75 mt-1">
-                    Begin bij de basis. Dit bepaalt de fundamenten van je avatar.
+                    We starten bij het fundament van jouw koper.
                   </p>
                 </div>
 
-                {/* Geslacht Keuze */}
+                {/* VRAAG 1: Geslacht */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    1. Geslacht
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 1: Wat is het primaire geslacht van jouw doelgroep?
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <p className="text-xs opacity-70">
+                    Wie neemt in de praktijk meestal de aankoopbeslissing of dient de aanvraag in?
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 pt-1">
                     <button
                       type="button"
                       onClick={() => updatePersona("gender", "man")}
@@ -283,7 +279,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                       </div>
                       <div>
                         <div className="font-bold text-sm">Man</div>
-                        <div className="text-xs opacity-70">Mannelijk personage</div>
+                        <div className="text-xs opacity-70">Mannelijk klantprofiel</div>
                       </div>
                     </button>
 
@@ -301,18 +297,21 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                       </div>
                       <div>
                         <div className="font-bold text-sm">Vrouw</div>
-                        <div className="text-xs opacity-70">Vrouwelijk personage</div>
+                        <div className="text-xs opacity-70">Vrouwelijk klantprofiel</div>
                       </div>
                     </button>
                   </div>
                 </div>
 
-                {/* Leeftijd Keuze */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    2. Leeftijdscategorie
+                {/* VRAAG 2: Leeftijd */}
+                <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 2: In welke leeftijdscategorie zit jouw ideale doelgroep?
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <p className="text-xs opacity-70">
+                    Elke leeftijdsfase brengt andere prioriteiten, digitale gewoontes en beslisstijlen met zich mee.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     {ageOptions.map((opt) => (
                       <button
                         key={opt.value}
@@ -341,11 +340,14 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                   </div>
                 </div>
 
-                {/* Naam van het karakter */}
+                {/* VRAAG 3: Naam */}
                 <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Geef deze klant een voorbeeldfictieve naam
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 3: Welke fictieve naam geef je aan deze persona?
                   </label>
+                  <p className="text-xs opacity-70">
+                    Een echte naam zorgt ervoor dat de klant gaat leven in je advertenties en verkoopgesprekken.
+                  </p>
                   <input
                     type="text"
                     value={persona.name}
@@ -363,42 +365,51 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                 <div>
                   <h3 className="text-lg font-black flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-gradient-brand text-white text-xs flex items-center justify-center font-bold">2</span>
-                    Inkomen &amp; Kledingstijl
+                    Koopkracht &amp; Kledingstijl
                   </h3>
                   <p className="text-xs opacity-75 mt-1">
-                    Het inkomen bepaalt direct de kleding en accessoires van de avatar!
+                    Ontdek hoe prijsgevoelig jouw klant is en hoe dat zijn uitstraling beïnvloedt.
                   </p>
                 </div>
 
                 <div className="space-y-3">
-                  {incomeOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => updatePersona("incomeLevel", opt.value)}
-                      className={`w-full p-4 rounded-xl border-2 text-left transition flex items-start justify-between gap-4 ${
-                        persona.incomeLevel === opt.value
-                          ? "border-[#dfb25a] bg-[#dfb25a]/15 shadow-md"
-                          : "border-black/10 dark:border-white/10 bg-[var(--surface)] hover:border-[#dfb25a]/50"
-                      }`}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-sm sm:text-base">{opt.label}</span>
-                          <span className="text-xs font-mono font-bold text-[#dfb25a]">{opt.stars}</span>
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag: Welk inkomensniveau en welke koopkracht heeft jouw ideale doelgroep?
+                  </label>
+                  <p className="text-xs opacity-70">
+                    Kies het niveau. Let op hoe de avatar rechts direct wisselt van hoodie, naar nette trui, naar luxe Italiaans maatpak!
+                  </p>
+
+                  <div className="space-y-3 pt-1">
+                    {incomeOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => updatePersona("incomeLevel", opt.value)}
+                        className={`w-full p-4 rounded-xl border-2 text-left transition flex items-start justify-between gap-4 ${
+                          persona.incomeLevel === opt.value
+                            ? "border-[#dfb25a] bg-[#dfb25a]/15 shadow-md"
+                            : "border-black/10 dark:border-white/10 bg-[var(--surface)] hover:border-[#dfb25a]/50"
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-sm sm:text-base">{opt.label}</span>
+                            <span className="text-xs font-mono font-bold text-[#dfb25a]">{opt.stars}</span>
+                          </div>
+                          <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            👔 Kledingstijl: {opt.clothes}
+                          </div>
+                          <p className="text-xs opacity-70 leading-relaxed">
+                            {opt.desc}
+                          </p>
                         </div>
-                        <div className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                          👔 Kledingstijl: {opt.clothes}
+                        <div className="text-xl shrink-0">
+                          {opt.value === "budget" ? "👕" : opt.value === "modaal" ? "🧶" : "🤵"}
                         </div>
-                        <p className="text-xs opacity-70 leading-relaxed">
-                          {opt.desc}
-                        </p>
-                      </div>
-                      <div className="text-xl shrink-0">
-                        {opt.value === "budget" ? "👕" : opt.value === "modaal" ? "🧶" : "🤵"}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -409,46 +420,52 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                 <div>
                   <h3 className="text-lg font-black flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-gradient-brand text-white text-xs flex items-center justify-center font-bold">3</span>
-                    Beroep &amp; Interesses
+                    Beroepssector &amp; Dagelijkse Bezigheden
                   </h3>
                   <p className="text-xs opacity-75 mt-1">
-                    Wat doet jouw klant in het dagelijks leven? Dit voegt props en attributen toe aan je personage.
+                    Wat doet jouw klant in het dagelijks leven en wat zijn hun passies?
                   </p>
                 </div>
 
-                {/* Beroep */}
+                {/* VRAAG 1: Beroep */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Beroepssector
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 1: In welke beroepssector of levensfase bevindt jouw doelgroep zich?
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <p className="text-xs opacity-70">
+                    Dit voegt herkenbare werkkleding of attributen (zoals helmen, caps, togakragen of koptelefoons) toe aan je avatar.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     {jobOptions.map((opt) => (
                       <button
                         key={opt.value}
                         type="button"
                         onClick={() => updatePersona("jobSector", opt.value)}
-                        className={`p-3.5 rounded-xl border-2 text-left transition flex items-center gap-3 ${
+                        className={`p-3 rounded-xl border-2 text-left transition flex items-center gap-3 ${
                           persona.jobSector === opt.value
                             ? "border-[#dfb25a] bg-[#dfb25a]/15 shadow-md"
                             : "border-black/10 dark:border-white/10 bg-[var(--surface)] hover:border-[#dfb25a]/50"
                         }`}
                       >
-                        <span className="text-2xl">{opt.icon}</span>
+                        <span className="text-2xl shrink-0">{opt.icon}</span>
                         <div>
-                          <div className="font-bold text-sm">{opt.label}</div>
-                          <div className="text-xs opacity-70">{opt.desc}</div>
+                          <div className="font-bold text-xs sm:text-sm">{opt.label}</div>
+                          <div className="text-[11px] opacity-70">{opt.desc}</div>
                         </div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Interesses Chips */}
+                {/* VRAAG 2: Interesses */}
                 <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Interesses &amp; Vrije tijd (selecteer meerdere)
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 2: Welke interesses en passies typeren jouw klant in zijn/haar vrije tijd?
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <p className="text-xs opacity-70">
+                    Selecteer onderwerpen die je kunt gebruiken in je marketingverhalen en advertenties.
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {lifestyleTags.map((tag) => {
                       const isSelected = persona.lifestyles.includes(tag);
                       return (
@@ -481,16 +498,19 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                     Wonen, Gezin &amp; Online Hangouts
                   </h3>
                   <p className="text-xs opacity-75 mt-1">
-                    Waar woont hij, hoe ziet zijn huishouden eruit en op welke platforms is hij actief?
+                    Waar woont hij, hoe ziet het huishouden eruit en waar vind je hem online?
                   </p>
                 </div>
 
-                {/* Gezinssituatie */}
+                {/* VRAAG 1: Gezinssituatie */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Gezinssituatie
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 1: Wat is de gezinssituatie van jouw ideale klant?
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <p className="text-xs opacity-70">
+                    Heeft het huishouden directe invloed op de urgentie of keuzes van jouw aanbod?
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                     {familyOptions.map((opt) => (
                       <button
                         key={opt.value}
@@ -509,12 +529,15 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                   </div>
                 </div>
 
-                {/* Woonsituatie */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Woonlocatie &amp; Omgeving
+                {/* VRAAG 2: Woonomgeving */}
+                <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 2: In wat voor woonomgeving en type woning resideert jouw klant?
                   </label>
-                  <div className="grid grid-cols-3 gap-2.5">
+                  <p className="text-xs opacity-70">
+                    Bepalend voor je werkgebied en de type klussen of producten die relevant zijn.
+                  </p>
+                  <div className="grid grid-cols-3 gap-2.5 pt-1">
                     {housingOptions.map((opt) => (
                       <button
                         key={opt.value}
@@ -533,12 +556,15 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                   </div>
                 </div>
 
-                {/* Online Hangouts */}
+                {/* VRAAG 3: Online Hangouts */}
                 <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Waar bevindt hij/zij zich online? (Kies platforms)
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 3: Op welke online platformen bevindt jouw doelgroep zich dagelijks?
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <p className="text-xs opacity-70">
+                    Selecteer kanalen. In het paspoort krijg je direct slimme tools zoals Taplio, CapCut en Google optimalisatie!
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
                     {platformOptions.map((opt) => {
                       const isSelected = persona.platforms.includes(opt.value);
                       return (
@@ -574,16 +600,19 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                     Het Cruciale Koopmotief &amp; Pijnpunt
                   </h3>
                   <p className="text-xs opacity-75 mt-1">
-                    Wat is voor deze specifieke klant de doorslaggevende reden om bij jou te kopen?
+                    De kern van verkoop: waarom koopt iemand écht bij jou en wat is hun acute pijnpunt?
                   </p>
                 </div>
 
-                {/* Primaire reden */}
+                {/* VRAAG 1: Primair criterium */}
                 <div className="space-y-2.5">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Belangrijkste criterium in jouw vakgebied
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 1: Wat is voor jouw doelgroep het allerbelangrijkste koopcriterium in jouw vakgebied?
                   </label>
-                  <div className="space-y-2.5">
+                  <p className="text-xs opacity-70">
+                    Kiezen ze voor snelheid, de beste materialen, de laagste prijs of volledige ontzorging?
+                  </p>
+                  <div className="space-y-2.5 pt-1">
                     {motivationOptions.map((opt) => (
                       <button
                         key={opt.value}
@@ -605,19 +634,19 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                   </div>
                 </div>
 
-                {/* De specifieke context / situatie van de gebruiker (voorbeeld uit de user request!) */}
+                {/* VRAAG 2: Specifieke praktijksituatie */}
                 <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
-                  <label className="text-xs font-bold uppercase tracking-wider opacity-80 block">
-                    Beschrijf zijn/haar specifieke situatie &amp; pijnpunt
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block">
+                    Vraag 2: Wat is hun specifieke praktijksituatie of acute pijnpunt?
                   </label>
                   <p className="text-xs opacity-70">
-                    Bijvoorbeeld: Als je vloerverwarming aanbiedt: &ldquo;Woont nu met 2 jonge kinderen tijdelijk bij zijn ouders, dus snelheid en oplevering binnen 3 weken is cruciaal!&rdquo;
+                    Bijvoorbeeld: Bied je vloerverwarming aan? &ldquo;Woont nu met 2 jonge kinderen tijdelijk bij zijn ouders, dus oplevering binnen 3 weken is pure noodzaak!&rdquo;
                   </p>
                   <textarea
                     rows={3}
                     value={persona.customContext}
                     onChange={(e) => updatePersona("customContext", e.target.value)}
-                    placeholder="Typ hier zijn/haar specifieke situatie..."
+                    placeholder="Typ hier de specifieke praktijksituatie..."
                     className="w-full bg-[var(--surface)] border border-black/15 dark:border-white/20 p-3 rounded-xl font-medium focus:outline-none focus:border-[#dfb25a] text-sm resize-none"
                   />
                 </div>
@@ -672,7 +701,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
                   Karakter reageert live!
                 </span>
                 <span className="opacity-75 leading-relaxed text-[11px]">
-                  Verander van leeftijd, beroep of inkomen om te zien hoe de kleding (hoodie vs pak), gezichtslijnen en accessoires direct meeveranderen.
+                  Elke selectie past de avatar rechts onmiddellijk aan: kleding, haar, leeftijd, gezichtsvorm en herkenbare beroepshoofddeksels.
                 </span>
               </div>
             </div>
