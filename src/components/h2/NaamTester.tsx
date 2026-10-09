@@ -310,15 +310,11 @@ export function NaamTester({
 
                     {/* KvK Handelsregister */}
                     <a
-                      href={hasName ? checkLinks.kvk(item.name) : "#"}
-                      target={hasName ? "_blank" : undefined}
+                      href={hasName ? checkLinks.kvk(item.name) : checkLinks.kvkZoeken}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className={`p-2 rounded-lg font-bold flex items-center justify-between border transition ${
-                        hasName 
-                          ? "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 hover:border-amber-500/50 hover:text-amber-400"
-                          : "opacity-40 cursor-not-allowed bg-black/5 dark:bg-white/5 border-transparent"
-                      }`}
-                      title={hasName ? `Zoek '${item.name}' in het KvK Handelsregister` : "Vul eerst een naam in"}
+                      className="p-2 rounded-lg font-bold flex items-center justify-between border transition bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 hover:border-amber-500/50 hover:text-amber-400"
+                      title={hasName ? `Zoek '${item.name}' in het KvK Handelsregister` : "Open KvK Zoeken (https://www.kvk.nl/zoeken/)"}
                     >
                       <span className="flex items-center gap-1.5">
                         <Building2 className="w-3.5 h-3.5 text-amber-400" /> KvK Register

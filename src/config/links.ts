@@ -25,7 +25,8 @@ export const checkLinks = {
   },
 
   // 3. KvK Handelsregister
-  kvk: (name: string) => `https://www.kvk.nl/zoeken/handelsregister/?q=${encodeURIComponent(name)}`,
+  kvk: (name?: string) => (name ? `https://www.kvk.nl/zoeken/?q=${encodeURIComponent(name)}` : "https://www.kvk.nl/zoeken/"),
+  kvkZoeken: "https://www.kvk.nl/zoeken/",
 
   // 4. Benelux Merkenregister (BOIP)
   boip: (name: string) => `https://www.boip.int/nl/merkenregister?query=${encodeURIComponent(name)}`,
