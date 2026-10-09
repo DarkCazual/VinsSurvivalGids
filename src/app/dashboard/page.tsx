@@ -1,16 +1,42 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BrandLogo } from "@/components/BrandLogo";
+import { createClient } from "@/lib/supabase/server";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  
+  // Controleer of de gebruiker is ingelogd
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    // Niet ingelogd? Terug naar de inlogpagina
+    redirect("/login");
+  }
+
+  // Server Action voor het uitloggen
+  const signOut = async () => {
+    "use server";
+    const supabaseServer = await createClient();
+    await supabaseServer.auth.signOut();
+    redirect("/login");
+  };
+
   return (
     <div className="min-h-screen bg-[var(--surface)] p-6">
       <header className="max-w-4xl mx-auto flex justify-between items-center py-6 mb-8 border-b border-gray-200 dark:border-white/10">
         <BrandLogo title="Dashboard" />
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Link href="/account" className="text-sm font-medium hover:opacity-70 transition-opacity">Account</Link>
-          <button className="text-sm font-medium text-red-600 dark:text-red-400 hover:opacity-70 transition-opacity">Uitloggen</button>
+          <Link href="/account" className="text-sm font-medium hover:opacity-70 transition-opacity">
+            {user.email}
+          </Link>
+          <form action={signOut}>
+            <button type="submit" className="text-sm font-medium text-red-600 dark:text-red-400 hover:opacity-70 transition-opacity">
+              Uitloggen
+            </button>
+          </form>
         </div>
       </header>
 
