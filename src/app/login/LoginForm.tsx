@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"password" | "magic-link">("password");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
+  const router = useRouter();
   const supabase = createClient();
 
   const handleGoogleLogin = async () => {
@@ -25,13 +29,42 @@ export function LoginForm() {
     }
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    
+    if (!email || !password) return;
+
     setLoading(true);
     setMessage(null);
-    
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      // Gebruiksvriendelijke Nederlandse foutmeldingen
+      if (error.message.includes("Invalid login credentials")) {
+        setMessage({ text: "Onjuist e-mailadres of wachtwoord.", type: "error" });
+      } else if (error.message.includes("Email not confirmed")) {
+        setMessage({ text: "Dit e-mailadres is nog niet bevestigd in Supabase.", type: "error" });
+      } else {
+        setMessage({ text: error.message, type: "error" });
+      }
+      setLoading(false);
+    } else {
+      setMessage({ text: "Succesvol ingelogd! Je wordt doorgestuurd...", type: "success" });
+      // Volledige redirect om cookies goed te verversen
+      window.location.href = "/dashboard";
+    }
+  };
+
+  const handleMagicLinkLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setLoading(true);
+    setMessage(null);
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -68,30 +101,88 @@ export function LoginForm() {
         </svg>
         Inloggen met Google
       </button>
-      
+
       <div className="relative flex items-center py-2">
         <div className="flex-grow border-t border-black/10 dark:border-white/10"></div>
-        <span className="flex-shrink-0 mx-4 text-gray-500 text-sm">Of via e-mail</span>
+        <span className="flex-shrink-0 mx-4 text-gray-500 text-xs uppercase tracking-wider">Of met e-mail</span>
         <div className="flex-grow border-t border-black/10 dark:border-white/10"></div>
       </div>
-      
-      <form onSubmit={handleEmailLogin} className="space-y-4">
-        <input 
-          type="email" 
-          placeholder="jouw@email.nl" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border border-black/20 dark:border-white/20 p-3 rounded-md focus:outline-none focus:border-[var(--brand-primary-end)] bg-transparent" 
-        />
-        <button 
-          type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-brand text-[var(--on-primary)] p-3 rounded-md font-bold shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+
+      {/* Keuze: Wachtwoord vs Magic Link */}
+      <div className="flex rounded-lg bg-black/5 dark:bg-white/5 p-1 text-xs font-semibold">
+        <button
+          type="button"
+          onClick={() => setMode("password")}
+          className={`flex-1 py-1.5 rounded-md transition-all ${mode === "password" ? "bg-[var(--surface)] text-[var(--text)] shadow-xs" : "opacity-60 hover:opacity-100"}`}
         >
-          {loading ? 'Bezig...' : 'Stuur inloglink'}
+          Wachtwoord
         </button>
-      </form>
+        <button
+          type="button"
+          onClick={() => setMode("magic-link")}
+          className={`flex-1 py-1.5 rounded-md transition-all ${mode === "magic-link" ? "bg-[var(--surface)] text-[var(--text)] shadow-xs" : "opacity-60 hover:opacity-100"}`}
+        >
+          Inloglink (zonder wachtwoord)
+        </button>
+      </div>
+
+      {mode === "password" ? (
+        <form onSubmit={handlePasswordLogin} className="space-y-3 text-left">
+          <div>
+            <label className="block text-xs font-semibold mb-1 opacity-80">E-mailadres</label>
+            <input 
+              type="email" 
+              placeholder="jouw@email.nl" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full border border-black/20 dark:border-white/20 p-3 rounded-md focus:outline-none focus:border-[var(--brand-primary-end)] bg-transparent text-sm" 
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold mb-1 opacity-80">Wachtwoord</label>
+            <input 
+              type="password" 
+              placeholder="••••••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full border border-black/20 dark:border-white/20 p-3 rounded-md focus:outline-none focus:border-[var(--brand-primary-end)] bg-transparent text-sm" 
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-brand text-[var(--on-primary)] p-3 rounded-md font-bold shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50 mt-2"
+          >
+            {loading ? 'Bezig met inloggen...' : 'Inloggen'}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleMagicLinkLogin} className="space-y-4 text-left">
+          <div>
+            <label className="block text-xs font-semibold mb-1 opacity-80">E-mailadres</label>
+            <input 
+              type="email" 
+              placeholder="jouw@email.nl" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full border border-black/20 dark:border-white/20 p-3 rounded-md focus:outline-none focus:border-[var(--brand-primary-end)] bg-transparent text-sm" 
+            />
+          </div>
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-brand text-[var(--on-primary)] p-3 rounded-md font-bold shadow-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+          >
+            {loading ? 'Bezig...' : 'Stuur inloglink'}
+          </button>
+        </form>
+      )}
     </div>
   );
 }
