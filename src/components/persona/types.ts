@@ -58,15 +58,15 @@ export interface PersonaData {
 }
 
 export const DEFAULT_PERSONA: PersonaData = {
-  name: "Jan de Boer",
+  name: "",
   gender: 'man',
   ageGroup: '26-40',
   incomeLevel: 'modaal',
   jobSector: 'kantoor',
-  lifestyles: ['familie', 'klussen'],
+  lifestyles: [],
   housing: 'dorp',
   familySituation: 'jong_gezin',
-  platforms: ['linkedin', 'facebook', 'google'],
+  platforms: [],
   coreMotivation: 'snelheid',
-  customContext: 'Heeft met spoed vloerverwarming nodig: woont met 2 jonge kinderen tijdelijk bij zijn ouders en wil binnen 4 weken verhuizen.',
+  customContext: '',
 };

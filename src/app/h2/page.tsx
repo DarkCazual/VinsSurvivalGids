@@ -10,7 +10,8 @@ export default async function Hoofdstuk2Page() {
     redirect("/login");
   }
 
+  const userId = user?.id || "gast-gebruiker";
   const userEmail = user?.email || "ondernemer@vinssurvivalgids.nl";
 
-  return <H2Client userEmail={userEmail} />;
+  return <H2Client userId={userId} userEmail={userEmail} />;
 }

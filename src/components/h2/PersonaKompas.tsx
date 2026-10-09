@@ -15,13 +15,18 @@ import {
   UserCheck 
 } from "lucide-react";
 
-export function PersonaKompas() {
+interface PersonaKompasProps {
+  userId?: string;
+}
+
+export function PersonaKompas({ userId }: PersonaKompasProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [persona, setPersona] = useState<PersonaData>(DEFAULT_PERSONA);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("vsg_h1_data");
+      const storageKey = userId ? `vsg_h1_data_${userId}` : "vsg_h1_data";
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.persona) {
@@ -31,7 +36,7 @@ export function PersonaKompas() {
     } catch (e) {
       console.error("Fout bij laden van persona voor kompas:", e);
     }
-  }, []);
+  }, [userId]);
 
   return (
     <>

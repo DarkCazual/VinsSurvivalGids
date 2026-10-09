@@ -26,25 +26,30 @@ import {
 } from "lucide-react";
 
 interface H2ClientProps {
+  userId: string;
   userEmail: string;
 }
 
-export function H2Client({ userEmail }: H2ClientProps) {
+export function H2Client({ userId, userEmail }: H2ClientProps) {
   const [activeTab, setActiveTab] = useState<"naamtester" | "rechtsvorm" | "kor" | "activiteiten" | "dossier">("naamtester");
   const [h2Data, setH2Data] = useState<H2Data>(DEFAULT_H2_DATA);
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
-  // Laad data uit localStorage
+  // Laad data per specifieke gebruiker uit localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("vsg_h2_data");
+      const storageKey = `vsg_h2_data_${userId}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         setH2Data(JSON.parse(saved));
+      } else {
+        // Schone start voor nieuwe gebruikers
+        setH2Data(DEFAULT_H2_DATA);
       }
     } catch (e) {
       console.error("Fout bij laden van H2 data:", e);
     }
-  }, []);
+  }, [userId]);
 
   const handleSave = () => {
     try {
@@ -52,11 +57,11 @@ export function H2Client({ userEmail }: H2ClientProps) {
         ...h2Data,
         updatedAt: new Date().toISOString(),
       };
-      localStorage.setItem("vsg_h2_data", JSON.stringify(updated));
+      localStorage.setItem(`vsg_h2_data_${userId}`, JSON.stringify(updated));
       
-      // Sla ook de winnende naam op in centrale brand context
+      // Sla ook de winnende naam op in centrale brand context per gebruiker
       if (h2Data.winningName) {
-        localStorage.setItem("vsg_brand_name", h2Data.winningName);
+        localStorage.setItem(`vsg_brand_name_${userId}`, h2Data.winningName);
       }
 
       setSavedStatus("Alles succesvol opgeslagen! 🎉");
@@ -71,7 +76,7 @@ export function H2Client({ userEmail }: H2ClientProps) {
       const newNames = prev.names.map((item) => (item.id === id ? { ...item, ...updated } : item));
       const next = { ...prev, names: newNames };
       try {
-        localStorage.setItem("vsg_h2_data", JSON.stringify(next));
+        localStorage.setItem(`vsg_h2_data_${userId}`, JSON.stringify(next));
       } catch (e) {}
       return next;
     });
@@ -88,8 +93,8 @@ export function H2Client({ userEmail }: H2ClientProps) {
         },
       };
       try {
-        localStorage.setItem("vsg_h2_data", JSON.stringify(next));
-        localStorage.setItem("vsg_brand_name", winningName);
+        localStorage.setItem(`vsg_h2_data_${userId}`, JSON.stringify(next));
+        localStorage.setItem(`vsg_brand_name_${userId}`, winningName);
       } catch (e) {}
       return next;
     });
@@ -108,7 +113,7 @@ export function H2Client({ userEmail }: H2ClientProps) {
         },
       };
       try {
-        localStorage.setItem("vsg_h2_data", JSON.stringify(next));
+        localStorage.setItem(`vsg_h2_data_${userId}`, JSON.stringify(next));
       } catch (e) {}
       return next;
     });
@@ -125,7 +130,7 @@ export function H2Client({ userEmail }: H2ClientProps) {
         },
       };
       try {
-        localStorage.setItem("vsg_h2_data", JSON.stringify(next));
+        localStorage.setItem(`vsg_h2_data_${userId}`, JSON.stringify(next));
       } catch (e) {}
       return next;
     });
@@ -141,7 +146,7 @@ export function H2Client({ userEmail }: H2ClientProps) {
         },
       };
       try {
-        localStorage.setItem("vsg_h2_data", JSON.stringify(next));
+        localStorage.setItem(`vsg_h2_data_${userId}`, JSON.stringify(next));
       } catch (e) {}
       return next;
     });
@@ -361,7 +366,7 @@ export function H2Client({ userEmail }: H2ClientProps) {
       </main>
 
       {/* Zwevend Persona-Kompas */}
-      <PersonaKompas />
+      <PersonaKompas userId={userId} />
 
     </div>
   );

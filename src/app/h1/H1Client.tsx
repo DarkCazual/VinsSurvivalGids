@@ -22,47 +22,58 @@ import {
 } from "lucide-react";
 
 interface H1ClientProps {
+  userId: string;
   userEmail: string;
 }
 
-export function H1Client({ userEmail }: H1ClientProps) {
+const EMPTY_IDEE = {
+  aanbod: "",
+  doelgroepKort: "",
+  waaromJij: "",
+};
+
+const EMPTY_MISSIE = {
+  doelgroep: "",
+  resultaat: "",
+  angst: "",
+  oplossing: "",
+};
+
+export function H1Client({ userId, userEmail }: H1ClientProps) {
   // Actieve tab / stap binnen Hoofdstuk 1
   const [activeTab, setActiveTab] = useState<"idee" | "persona" | "missie" | "dossier">("persona");
 
-  // State voor Stap 1: Idee
-  const [ideeData, setIdeeData] = useState({
-    aanbod: "Vloerverwarming montage en freeswerk voor particulieren",
-    doelgroepKort: "Jonge gezinnen en verhuizers die een woning verbouwen",
-    waaromJij: "Binnen 2 weken gegarandeerd gelegd, stofarm gefreesd en 10 jaar garantie",
-  });
+  // State voor Stap 1: Idee - Schoon en leeg voor nieuwe accounts
+  const [ideeData, setIdeeData] = useState(EMPTY_IDEE);
 
-  // State voor Stap 2: Persona
+  // State voor Stap 2: Persona - Schoon en leeg voor nieuwe accounts
   const [personaData, setPersonaData] = useState<PersonaData>(DEFAULT_PERSONA);
 
-  // State voor Stap 3: Missie & Belofte (Mad-Libs stijl)
-  const [missieData, setMissieData] = useState({
-    doelgroep: "jonge gezinnen en verhuizers met tijdsdruk",
-    resultaat: "een heerlijk warme, energiezuinige woning zonder vertraging",
-    angst: "ze tijdelijk krap bij familie moeten inwonen of aannemers die afspraken niet nakomen",
-    oplossing: "onze snelle, stofarme vloerverwarming installatie met oplevergarantie",
-  });
+  // State voor Stap 3: Missie & Belofte - Schoon en leeg voor nieuwe accounts
+  const [missieData, setMissieData] = useState(EMPTY_MISSIE);
 
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
-  // Laad eventueel opgeslagen data uit localStorage
+  // Laad data per specifieke gebruiker uit localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("vsg_h1_data");
+      const storageKey = `vsg_h1_data_${userId}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.idee) setIdeeData(parsed.idee);
         if (parsed.persona) setPersonaData(parsed.persona);
         if (parsed.missie) setMissieData(parsed.missie);
+      } else {
+        // Schone start voor nieuwe gebruikers
+        setIdeeData(EMPTY_IDEE);
+        setPersonaData(DEFAULT_PERSONA);
+        setMissieData(EMPTY_MISSIE);
       }
     } catch (e) {
       console.error("Fout bij laden van opgeslagen data:", e);
     }
-  }, []);
+  }, [userId]);
 
   const handleSaveAll = () => {
     try {
@@ -72,7 +83,8 @@ export function H1Client({ userEmail }: H1ClientProps) {
         missie: missieData,
         updatedAt: new Date().toISOString(),
       };
-      localStorage.setItem("vsg_h1_data", JSON.stringify(fullData));
+      const storageKey = `vsg_h1_data_${userId}`;
+      localStorage.setItem(storageKey, JSON.stringify(fullData));
       setSavedStatus("Alles succesvol opgeslagen! 🎉");
       setTimeout(() => setSavedStatus(null), 4000);
     } catch (e) {

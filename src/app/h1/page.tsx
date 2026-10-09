@@ -10,7 +10,8 @@ export default async function Hoofdstuk1Page() {
     redirect("/login");
   }
 
+  const userId = user?.id || "gast-gebruiker";
   const userEmail = user?.email || "ondernemer@vinssurvivalgids.nl";
 
-  return <H1Client userEmail={userEmail} />;
+  return <H1Client userId={userId} userEmail={userEmail} />;
 }
