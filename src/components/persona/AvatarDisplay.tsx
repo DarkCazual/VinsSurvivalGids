@@ -18,11 +18,12 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
   const skinShadow = "#E8A386";
   const eyeColor = "#1F2937";
   
-  // STRALEND BLOND HAAR (Volledig dekkend, geen gat of transparantie meer!)
-  const hairColor = "#E5BF55";      // Rijk warm goudblond
-  const hairHighlight = "#FEF08A";  // Lichte zonneblonde highlights
-  const hairLowlight = "#C6922C";   // Donkerblonde aanzet / diepte
-  const eyebrowColor = "#9C6E23";   // Warme wenkbrauwen passend bij blond
+  // Haarkleur en stijl: verzorgd zilver/grijs kapsel voor 65+, stralend warm goudblond voor 18-64
+  const isSenior = ageGroup === "65+";
+  const hairColor = isSenior ? "#E2E8F0" : "#E5BF55";       // Fris verzorgd zilver/lichtgrijs (65+) vs warm goudblond
+  const hairHighlight = isSenior ? "#FFFFFF" : "#FEF08A";   // Heldere witte glans (65+) vs lichte zonneblonde highlights
+  const hairLowlight = isSenior ? "#94A3B8" : "#C6922C";    // Zacht leisteengrijs voor diepte (65+) vs donkerblonde aanzet
+  const eyebrowColor = isSenior ? "#64748B" : "#9C6E23";    // Gedistingeerde zilver-grijze wenkbrauwen (65+) vs warm blond
 
   const hasWrinkles = ageGroup === "41-64" || ageGroup === "65+";
   const hasGlasses = ageGroup === "65+";
