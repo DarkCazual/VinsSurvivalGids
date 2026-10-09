@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-start: var(--brand-primary-start);
+  --color-brand-end: var(--brand-primary-end);
+  --color-surface: var(--surface);
+  --color-section: var(--section-bg);
+  --color-text: var(--text);
+}
+
+@layer base {
+  :root {
+    --brand-primary-start: #dfb25a;
+    --brand-primary-end: #a16e38;
+    
+    --brand-dark: #1a0f08;
+    --brand-light: #ffffff;
+    
+    --on-primary: #ffffff;
+    
+    --surface: #ffffff;
+    --section-bg: #f1f1f1;
+    --text: #1a0f08;
+    
+    --font-heading: 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+  
+  .dark {
+    --surface: #26160d;
+    --section-bg: #382215;
+    --text: #fdf9f1;
+    --brand-primary-start: #dfb25a;
+    --brand-primary-end: #a16e38;
+    --on-primary: #ffffff;
+  }
+  
+  body {
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: var(--font-body);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .bg-gradient-brand {
+    background-image: linear-gradient(to right, var(--brand-primary-start), var(--brand-primary-end));
+  }
+  .text-gradient-brand {
+    background-image: linear-gradient(to right, var(--brand-primary-start), var(--brand-primary-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
