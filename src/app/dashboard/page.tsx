@@ -40,22 +40,78 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto grid gap-6 md:grid-cols-2">
-        <div className="bg-[var(--section-bg)] p-6 rounded-xl shadow-sm border border-transparent dark:border-white/5">
-          <h2 className="font-bold text-lg mb-2">Hoofdstuk 1: Het denkwerk</h2>
-          <p className="text-sm opacity-80 mb-6">Je idee concreet, persona en missie.</p>
-          <Link href="/h1" className="inline-block bg-[var(--surface)] border border-gray-300 dark:border-gray-600 px-4 py-2 rounded font-medium text-sm hover:border-gray-400 transition-colors shadow-sm">
-            Start hoofdstuk 1
-          </Link>
-        </div>
+      <main className="max-w-4xl mx-auto space-y-8">
         
-        <div className="bg-[var(--section-bg)] p-6 rounded-xl shadow-sm opacity-60 dark:border-white/5">
-          <h2 className="font-bold text-lg mb-2">Hoofdstuk 2: De basis</h2>
-          <p className="text-sm mb-6">Naamtester en KvK voorbereiding.</p>
-          <span className="inline-block bg-black/10 dark:bg-white/10 text-[var(--text)] px-4 py-2 rounded font-medium text-sm">
-            Rond eerst H1 af
-          </span>
+        {/* Voortgangsoverzicht */}
+        <div className="grid gap-6 md:grid-cols-2">
+          
+          {/* Hoofdstuk 1 */}
+          <div className="bg-[var(--section-bg)] p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 relative overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-[#dfb25a] uppercase tracking-wider">
+                  Hoofdstuk 1 • Het Denkwerk
+                </span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30">
+                  Actief
+                </span>
+              </div>
+              <h2 className="font-black text-xl mb-1 text-[var(--text)]">Je idee, Persona &amp; Belofte</h2>
+              <p className="text-sm opacity-80 mb-6 leading-relaxed">
+                Maak je idee concreet, ontwerp je ideale klantpaspoort in de Persona Studio en formuleer je belofte.
+              </p>
+            </div>
+            
+            <Link 
+              href="/h1" 
+              className="inline-flex items-center justify-center gap-2 bg-[var(--surface)] border border-black/15 dark:border-white/15 px-4 py-2.5 rounded-xl font-bold text-xs hover:border-[#dfb25a] hover:text-[#dfb25a] transition-all shadow-sm"
+            >
+              Open Hoofdstuk 1 (Persona Studio) →
+            </Link>
+          </div>
+          
+          {/* Hoofdstuk 2: Nu Ontgrendeld! */}
+          <div className="bg-gradient-to-br from-[var(--section-bg)] to-amber-950/20 p-6 rounded-2xl shadow-lg border-2 border-[#dfb25a]/50 relative overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-[#dfb25a] uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#dfb25a] animate-pulse" />
+                  Hoofdstuk 2 • De Basis
+                </span>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#dfb25a]/20 text-[#dfb25a] font-black border border-[#dfb25a]/40">
+                  Klaar om te starten 🚀
+                </span>
+              </div>
+              <h2 className="font-black text-xl mb-1 text-[var(--text)]">De Naamtester &amp; KvK Gids</h2>
+              <p className="text-sm opacity-80 mb-6 leading-relaxed">
+                Test je bedrijfsnaam in de 3-namen battle, ontdek je rechtsvorm, doorloop de KOR-wijzer en print je KvK-spiekbriefje.
+              </p>
+            </div>
+
+            <Link 
+              href="/h2" 
+              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black px-4 py-2.5 rounded-xl font-black text-xs shadow-md hover:brightness-110 transition-all uppercase tracking-wider"
+            >
+              Start Hoofdstuk 2 (Naam &amp; KvK) →
+            </Link>
+          </div>
+
         </div>
+
+        {/* Volgende fasen preview */}
+        <div className="grid gap-6 md:grid-cols-2 opacity-50">
+          <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/5 dark:border-white/5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Hoofdstuk 3</span>
+            <h3 className="font-bold text-sm text-[var(--text)]">De Visuele Identiteit</h3>
+            <p className="text-xs opacity-75 mt-0.5">Logo-generator, kleurenpalet &amp; typografie.</p>
+          </div>
+          <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/5 dark:border-white/5">
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Hoofdstuk 4</span>
+            <h3 className="font-bold text-sm text-[var(--text)]">Schrijfstijl voor AI</h3>
+            <p className="text-xs opacity-75 mt-0.5">Brand-voice, tone of voice &amp; contentprompts.</p>
+          </div>
+        </div>
+
       </main>
     </div>
   );

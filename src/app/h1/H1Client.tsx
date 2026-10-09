@@ -482,7 +482,7 @@ export function H1Client({ userEmail }: H1ClientProps) {
                 </p>
                 <div className="pt-2">
                   <Link
-                    href="/dashboard"
+                    href="/h2"
                     className="inline-block text-xs font-bold text-gradient-brand underline"
                   >
                     Ga naar Hoofdstuk 2 (De Basis &amp; KvK) →
