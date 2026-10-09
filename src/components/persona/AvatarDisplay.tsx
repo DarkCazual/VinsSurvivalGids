@@ -18,40 +18,50 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
   const skinShadow = "#E8A386";
   const eyeColor = "#1F2937";
   
-  // NATUURLIJK BLOND HAARPALET MET DONKERBLOND EN LICHTBLOND VARIATIES
-  // "gewoon het hele haar blond met lichte donker blond en licht blond variaties"
-  const darkBlonde = "#B8860B";   // Donkerblond / honing aanzet & diepte
-  const midBlonde = "#E5BF55";    // Natuurlijk goudblond hoofdmassa
-  const lightBlonde = "#FEF08A";  // Lichtblond / zonnelokken
-  const brightBlonde = "#FFFBEB"; // Heldere glansaccenten
-  const eyebrowBlonde = "#9A6B1F"; // Warme wenkbrauwen passend bij blond
+  // STRALEND BLOND HAARPALET (Origineel haarmodel, maar blond ipv bruin)
+  // "de eerste versie was prima... maak het inplaats van bruin gewoon blond"
+  let hairColor = "#E5BF55";      // Rijk warm goudblond
+  let hairHighlight = "#FEF08A";  // Lichte zonneblonde highlights
+  let eyebrowColor = "#9C6E23";   // Warme natuurlijke wenkbrauwen bij blond haar
+  let hasWrinkles = false;
+  let hasGlasses = false;
 
-  const hasWrinkles = ageGroup === "41-64" || ageGroup === "65+";
-  const hasGlasses = ageGroup === "65+";
+  if (ageGroup === "18-25") {
+    hairColor = "#ECC665";
+    hairHighlight = "#FFF0A3";
+    eyebrowColor = "#A17327";
+  } else if (ageGroup === "26-40") {
+    hairColor = "#E2B852";
+    hairHighlight = "#FDE68A";
+    eyebrowColor = "#966A22";
+  } else if (ageGroup === "41-64") {
+    hairColor = "#D4AF37";
+    hairHighlight = "#FEF3C7";
+    eyebrowColor = "#8C6320";
+    hasWrinkles = true;
+  } else if (ageGroup === "65+") {
+    hairColor = "#EAE0C8"; // Licht champagne zilver-blond
+    hairHighlight = "#FAF5E9";
+    eyebrowColor = "#9CA3AF";
+    hasWrinkles = true;
+    hasGlasses = true;
+  }
 
-  // Beroepen met een passend hoofddeksel
-  const hasFullHat = 
-    jobSector === "vakman" || 
-    jobSector === "hulpdiensten" || 
-    jobSector === "horeca" || 
-    jobSector === "student" || 
-    jobSector === "gepensioneerd";
-
-  // Kledingkleur en stijl op basis van inkomen
-  let clothingColor = "#4B5563";
+  // Kledingkleur en accessoires op basis van inkomen
+  let clothingColor = "#4B5563"; // budget (grijze hoodie)
   let clothingAccent = "#374151";
   let clothingType = "hoodie";
 
   if (incomeLevel === "budget") {
-    clothingColor = "#4B5563"; // Casual hoodie
+    clothingColor = "#4B5563"; // Simpele grijze hoodie
     clothingAccent = "#374151";
     clothingType = "hoodie";
   } else if (incomeLevel === "modaal") {
-    clothingColor = "#1E3A8A"; // Smart navy trui
+    clothingColor = "#1E3A8A"; // Nette navy gebreide trui / polo
     clothingAccent = "#3B82F6";
     clothingType = "sweater";
   } else if (incomeLevel === "hoog") {
-    clothingColor = "#0F172A"; // Luxe donker maatpak
+    clothingColor = "#111827"; // Luxe diepzwart/navy maatpak
     clothingAccent = "#DFB25A"; // Gouden details
     clothingType = "suit";
   }
@@ -92,6 +102,7 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
         <div className="relative z-10 w-full flex justify-center py-2">
           <div className="relative w-64 h-64 sm:w-72 sm:h-72">
             
+            {/* Halo / Cirkel ring achter het personage */}
             <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-2xl overflow-visible">
               <defs>
                 <linearGradient id="avatarGlow" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -104,14 +115,14 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 </linearGradient>
                 <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#1e293b" />
-                  <stop offset="100%" stopColor="#0a0f1d" />
+                  <stop offset="100%" stopColor="#0f172a" />
                 </linearGradient>
                 <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
                   <feDropShadow dx="0" dy="4" stdDeviation="5" floodColor="#000000" floodOpacity="0.4" />
                 </filter>
               </defs>
 
-              {/* Achtergrond ring & subtiele cirkel */}
+              {/* Achtergrond ring & spotlight */}
               <circle cx="150" cy="150" r="130" fill="url(#avatarGlow)" />
               <circle cx="150" cy="150" r="128" fill="none" stroke="#dfb25a" strokeOpacity="0.3" strokeWidth="2" strokeDasharray="6 4" />
 
@@ -216,25 +227,10 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
               <rect x="135" y="168" width="30" height="38" rx="4" fill={skinShadow} />
               <path d="M 135 180 Q 150 194 165 180 L 165 206 L 135 206 Z" fill={skinTone} opacity="0.7" />
 
-              {/* ===== ACHTERSTE HAARLAAG (VOOR VROUWEN MET LANG HAAR) ===== */}
-              {gender === "vrouw" && (
-                <g id="backHair" filter="url(#softShadow)">
-                  {/* Donkerblonde dieptelaag achter schouders */}
-                  <path d="M 94 135 C 90 180, 100 215, 108 238 C 104 205, 100 170, 98 135 Z" fill={darkBlonde} />
-                  <path d="M 206 135 C 210 180, 200 215, 192 238 C 196 205, 200 170, 202 135 Z" fill={darkBlonde} />
-                  {/* Goudblonde hoofdmassa */}
-                  <path d="M 98 138 C 94 175, 104 210, 112 232 C 108 200, 104 165, 102 138 Z" fill={midBlonde} />
-                  <path d="M 202 138 C 206 175, 196 210, 188 232 C 192 200, 196 165, 198 138 Z" fill={midBlonde} />
-                  {/* Lichtblonde highlights op vallende lokken */}
-                  <path d="M 101 150 Q 98 185 108 222" stroke={lightBlonde} strokeWidth="2" fill="none" opacity="0.9" />
-                  <path d="M 199 150 Q 202 185 192 222" stroke={lightBlonde} strokeWidth="2" fill="none" opacity="0.9" />
-                </g>
-              )}
-
               {/* ===== HOOFD & GEZICHT ===== */}
               <g id="head">
                 {gender === "man" ? (
-                  /* Mannelijke kaaklijn */
+                  /* Mannelijke kaaklijn (strak, niet te zwaar) */
                   <path
                     d="M 112 128 C 112 170, 128 186, 150 186 C 172 186, 188 170, 188 128 C 188 88, 112 88, 112 128 Z"
                     fill={skinTone}
@@ -266,14 +262,14 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 <circle cx="166" cy="136" r="3.2" fill={eyeColor} />
                 <circle cx="167.5" cy="134.5" r="1.2" fill="#FFFFFF" />
 
-                {/* Wenkbrauwen (passend warm blond) */}
+                {/* Wenkbrauwen */}
                 {gender === "man" ? (
-                  <g stroke={eyebrowBlonde} strokeWidth="3" strokeLinecap="round">
+                  <g stroke={eyebrowColor} strokeWidth="3" strokeLinecap="round">
                     <line x1="126" y1="126" x2="142" y2="125" />
                     <line x1="158" y1="125" x2="174" y2="126" />
                   </g>
                 ) : (
-                  <g stroke={eyebrowBlonde} strokeWidth="2.2" strokeLinecap="round">
+                  <g stroke={eyebrowColor} strokeWidth="2.2" strokeLinecap="round">
                     <path d="M 126 126 Q 135 122 143 125" fill="none" />
                     <path d="M 157 125 Q 165 122 174 126" fill="none" />
                   </g>
@@ -303,220 +299,129 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 {gender === "man" && (ageGroup === "26-40" || ageGroup === "41-64") && (
                   <path
                     d="M 126 154 C 128 174, 138 181, 150 181 C 162 181, 172 174, 174 154 C 170 167, 160 174, 150 174 C 140 174, 130 167, 126 154 Z"
-                    fill={eyebrowBlonde}
-                    opacity="0.16"
+                    fill={eyebrowColor}
+                    opacity="0.18"
                   />
                 )}
               </g>
 
-              {/* ===== BLOND HAAR MET NATUURLIJKE VARIATIES (DONKERBLOND & LICHTBLOND) ===== */}
-              {/* Als er GEEN volle hoed over het hoofd zit: toon het volledige kapsel */}
-              {!hasFullHat && (
-                <g id="fullBlondeHair" filter="url(#softShadow)">
-                  {gender === "man" ? (
-                    /* MANNELIJK BLOND KAPSEL MET NATUURLIJKE LOKKEN & HIGHLIGHTS */
-                    <g>
-                      {/* 1. Basis dieptevolume in donkerblond (#B8860B) */}
-                      <path
-                        d="M 104 130 C 104 80, 120 66, 150 66 C 180 66, 196 80, 196 130 C 196 110, 185 96, 150 96 C 115 96, 104 110, 104 130 Z"
-                        fill={darkBlonde}
-                      />
-                      {/* Bakkebaarden donkerblond */}
-                      <path d="M 108 126 L 111 138 L 115 130 Z" fill={darkBlonde} />
-                      <path d="M 192 126 L 189 138 L 185 130 Z" fill={darkBlonde} />
-
-                      {/* 2. Goudblonde hoofdmassa (#E5BF55) met natuurlijke lokken over het voorhoofd */}
-                      <path
-                        d="M 106 126 C 106 78, 122 68, 150 68 C 178 68, 194 78, 194 126 C 192 108, 182 98, 168 102 C 154 106, 142 98, 130 105 C 120 110, 110 116, 106 126 Z"
-                        fill={midBlonde}
-                      />
-
-                      {/* 3. Lichtblonde zonnelokken (#FEF08A) & kuifpartij */}
-                      <path
-                        d="M 118 84 C 136 68, 164 70, 178 78 C 160 74, 140 76, 124 86 Z"
-                        fill={lightBlonde}
-                      />
-                      {/* Speelse blonde lokken die over het voorhoofd vallen */}
-                      <path
-                        d="M 126 98 C 134 108, 142 110, 148 105 C 142 100, 136 96, 126 98 Z"
-                        fill={lightBlonde}
-                      />
-                      <path
-                        d="M 152 102 C 160 112, 170 110, 174 104 C 168 101, 160 98, 152 102 Z"
-                        fill={lightBlonde}
-                      />
-
-                      {/* 4. Heldere blonde glanslijnen (#FFFBEB) */}
-                      <path d="M 128 76 Q 146 72 166 76" stroke={brightBlonde} strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.8" />
-                      <path d="M 134 84 Q 150 80 162 84" stroke={brightBlonde} strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.7" />
+              {/* ===== HAARDRACHT (EXACT HET ORIGINELE MODEL, MAAR BLOND IPV BRUIN) ===== */}
+              <g id="hair" filter="url(#softShadow)">
+                {gender === "man" ? (
+                  /* Mannen blond kapsel */
+                  ageGroup === "65+" ? (
+                    /* Senior man: zilver-blond dunner haar aan zijkanten */
+                    <g fill={hairColor}>
+                      <path d="M 108 135 C 105 105, 115 95, 128 92 C 124 105, 115 125, 112 145 Z" />
+                      <path d="M 192 135 C 195 105, 185 95, 172 92 C 176 105, 185 125, 188 145 Z" />
+                      <path d="M 125 90 C 138 84, 162 84, 175 90 C 160 86, 140 86, 125 90 Z" opacity="0.6" fill={hairHighlight} />
+                    </g>
+                  ) : ageGroup === "18-25" ? (
+                    /* Trendy moderne fade / kuif voor jongere in blond */
+                    <g fill={hairColor}>
+                      <path d="M 106 130 C 106 88, 120 72, 150 72 C 180 72, 194 88, 194 130 C 194 110, 185 95, 150 95 C 115 95, 106 110, 106 130 Z" />
+                      <path d="M 120 85 C 140 70, 170 75, 182 82 C 160 78, 135 80, 120 85 Z" fill={hairHighlight} />
                     </g>
                   ) : (
-                    /* VROUWELIJK BLOND KAPSEL MET NATUURLIJKE LOKKEN & HIGHLIGHTS */
-                    <g>
-                      {/* 1. Donkerblonde basis & haarparting (#B8860B) */}
-                      <path
-                        d="M 98 142 C 94 94, 112 68, 150 68 C 188 68, 206 94, 202 142 C 206 118, 202 88, 185 78 C 165 68, 135 68, 115 78 C 98 88, 94 118, 98 142 Z"
-                        fill={darkBlonde}
-                      />
-
-                      {/* 2. Goudblonde middellaag met lokken langs het gezicht (#E5BF55) */}
-                      <path
-                        d="M 100 148 C 98 90, 114 70, 150 70 C 186 70, 202 90, 200 148 C 196 115, 185 96, 166 102 C 150 108, 142 100, 132 104 C 115 110, 104 125, 100 148 Z"
-                        fill={midBlonde}
-                      />
-
-                      {/* 3. Lichtblonde gezicht-omlijstende lokken (#FEF08A) */}
-                      <path
-                        d="M 112 100 C 122 114, 126 135, 122 152 C 120 134, 118 116, 112 100 Z"
-                        fill={lightBlonde}
-                      />
-                      <path
-                        d="M 188 100 C 178 114, 174 135, 178 152 C 180 134, 182 116, 188 100 Z"
-                        fill={lightBlonde}
-                      />
-
-                      {/* 4. Lichtblond volume bovenop met glans (#FEF08A & #FFFBEB) */}
-                      <path
-                        d="M 120 78 C 138 70, 162 70, 180 78 C 162 74, 138 74, 120 78 Z"
-                        fill={lightBlonde}
-                      />
-                      <path d="M 128 74 Q 150 70 172 74" stroke={brightBlonde} strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.8" />
+                    /* Nette strakke scheiding voor millennial / ervaren in blond */
+                    <g fill={hairColor}>
+                      <path d="M 106 132 C 106 88, 125 80, 150 80 C 175 80, 194 88, 194 132 C 194 112, 185 98, 150 98 C 115 98, 106 112, 106 132 Z" />
+                      <path d="M 125 86 C 145 80, 170 82, 185 89 C 160 84, 138 84, 125 86 Z" fill={hairHighlight} />
                     </g>
-                  )}
-                </g>
-              )}
-
-              {/* ===== BLONDE HAARLOKKEN LANGS DE ZIJKANT ONDER EEN HOED/PET ===== */}
-              {hasFullHat && (
-                <g id="hatUnderHair">
-                  {/* Bakkebaarden & oorlokken in blond met donker/licht variatie */}
-                  <path d="M 108 122 C 106 130, 108 140, 112 144 C 111 136, 110 128, 109 122 Z" fill={darkBlonde} />
-                  <path d="M 192 122 C 194 130, 192 140, 188 144 C 189 136, 190 128, 191 122 Z" fill={darkBlonde} />
-                  <path d="M 109 124 C 108 132, 109 138, 112 142 Z" fill={lightBlonde} opacity="0.9" />
-                  <path d="M 191 124 C 192 132, 191 138, 188 142 Z" fill={lightBlonde} opacity="0.9" />
-
-                  {/* Vrouwelijk vallend haar onder de hoed */}
-                  {gender === "vrouw" && (
-                    <g>
-                      <path d="M 100 135 C 96 165, 104 205, 112 225 C 108 198, 104 165, 100 135 Z" fill={midBlonde} />
-                      <path d="M 200 135 C 204 165, 196 205, 188 225 C 192 198, 196 165, 200 135 Z" fill={midBlonde} />
-                      <path d="M 99 145 Q 98 180 108 215" stroke={lightBlonde} strokeWidth="1.8" fill="none" opacity="0.8" />
-                      <path d="M 201 145 Q 202 180 192 215" stroke={lightBlonde} strokeWidth="1.8" fill="none" opacity="0.8" />
+                  )
+                ) : (
+                  /* Vrouwen blond kapsel */
+                  ageGroup === "65+" ? (
+                    /* Senior dame: verzorgd krullend blond/zilver haar */
+                    <g fill={hairColor}>
+                      <path d="M 102 145 C 98 100, 110 75, 150 75 C 190 75, 202 100, 198 145 C 205 130, 204 95, 185 82 C 165 72, 135 72, 115 82 C 96 95, 95 130, 102 145 Z" />
                     </g>
-                  )}
-                </g>
-              )}
+                  ) : ageGroup === "18-25" ? (
+                    /* Trendy lang blond haar met highlights */
+                    <g fill={hairColor}>
+                      <path d="M 100 175 C 95 110, 110 78, 150 78 C 190 78, 205 110, 200 175 C 206 140, 205 95, 185 85 C 165 76, 135 76, 115 85 C 95 95, 94 140, 100 175 Z" />
+                      <path d="M 98 160 C 95 185, 105 210, 112 230 C 110 205, 105 180, 102 160 Z" />
+                      <path d="M 202 160 C 205 185, 195 210, 188 230 C 190 205, 195 180, 198 160 Z" />
+                    </g>
+                  ) : (
+                    /* Zakelijk chic halflang blond kapsel */
+                    <g fill={hairColor}>
+                      <path d="M 102 165 C 98 105, 112 80, 150 80 C 188 80, 202 105, 198 165 C 204 135, 202 96, 185 86 C 165 78, 135 78, 115 86 C 98 96, 96 135, 102 165 Z" />
+                      <path d="M 100 155 C 96 180, 104 205, 110 215 C 108 195, 104 175, 102 155 Z" />
+                      <path d="M 200 155 C 204 180, 196 205, 190 215 C 192 195, 196 175, 198 155 Z" />
+                    </g>
+                  )
+                )}
+              </g>
 
-              {/* ===== HOOFDDEKSELS: PERFECT GEPROPORTIONEERD, NIET TE BREED, STRAK OP HET HOOFD ===== */}
+              {/* ===== HOOFDDEKSELS: GOED PASSEND OP DE SCHEDEL, NIET TE BREED, NIET ZWEVEND ===== */}
               
-              {/* 1. VAKMAN BOUWHELM: Strak over de schedel, breedte 98px (ipv 140px), klep net boven de wenkbrauwen */}
+              {/* 1. VAKMAN BOUWHELM: Sluit perfect aan op de schedel en rand net boven wenkbrauw */}
               {jobSector === "vakman" && (
                 <g id="hardHat" filter="url(#softShadow)">
-                  {/* Helm koepel: zit direct op de schedel (top y: 70, sluit aan op y: 114) */}
-                  <path
-                    d="M 104 114 C 102 68, 198 68, 196 114 Z"
-                    fill="#F59E0B"
-                    stroke="#D97706"
-                    strokeWidth="2"
-                  />
-                  {/* Stevige helmrand / klep: netjes 100px breed (x: 100 tot 200), lipje op y: 118 (vlak boven wenkbrauw) */}
-                  <path
-                    d="M 98 114 Q 150 122 202 114 L 198 108 Q 150 114 102 108 Z"
-                    fill="#D97706"
-                  />
-                  {/* Centrale verstevigingsrichel over de top */}
-                  <rect x="145" y="66" width="10" height="36" rx="3" fill="#B45309" />
-                  {/* Witte reflecterende veiligheidsstreep over de boog */}
-                  <path
-                    d="M 112 98 Q 150 104 188 98"
-                    stroke="#FFFFFF"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    fill="none"
-                    opacity="0.95"
-                  />
+                  <path d="M 106 104 C 106 66, 194 66, 194 104 Z" fill="#F59E0B" stroke="#D97706" strokeWidth="1.5" />
+                  <path d="M 100 106 Q 150 114 200 106 L 196 100 Q 150 106 104 100 Z" fill="#D97706" />
+                  <rect x="146" y="62" width="8" height="26" rx="2" fill="#B45309" />
+                  <path d="M 116 94 Q 150 100 184 94" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.9" />
                 </g>
               )}
 
-              {/* 2. HULPDIENSTEN POLITIE / DIENSTPET: Slank, strak op het voorhoofd met glanzende klep */}
+              {/* 2. HULPDIENSTEN POLITIE / DIENSTPET */}
               {jobSector === "hulpdiensten" && (
                 <g id="policeCap" filter="url(#softShadow)">
-                  {/* Cap kroon in marineblauw (breedte 96px, top y: 68) */}
-                  <path
-                    d="M 102 112 C 100 66, 200 66, 198 112 Z"
-                    fill="#1E3A8A"
-                    stroke="#172554"
-                    strokeWidth="2"
-                  />
-                  {/* Zwarte band strak om het voorhoofd */}
-                  <path d="M 106 108 Q 150 116 194 108 L 192 116 Q 150 122 108 116 Z" fill="#0F172A" />
-                  {/* Glanzende klep laag over de wenkbrauwen (y: 114 tot 122) */}
-                  <path
-                    d="M 104 114 Q 150 124 196 114 Q 150 118 104 114 Z"
-                    fill="#0A0F1D"
-                    stroke="#000000"
-                    strokeWidth="0.8"
-                  />
-                  <path d="M 125 117 Q 150 121 175 117" stroke="#FFFFFF" strokeWidth="1.5" fill="none" opacity="0.4" />
-                  {/* Gouden gedraaid koord */}
-                  <path d="M 106 112 Q 150 118 194 112" stroke="#DFB25A" strokeWidth="2.5" fill="none" />
-                  {/* Gouden politie ster badge */}
-                  <polygon points="150,84 153,92 161,92 155,97 157,104 150,100 143,104 145,97 139,92 147,92" fill="#DFB25A" stroke="#B45309" strokeWidth="0.8" />
+                  <path d="M 104 104 C 104 68, 196 68, 196 104 Z" fill="#1E3A8A" stroke="#172554" strokeWidth="1.5" />
+                  <path d="M 102 106 Q 150 116 198 106 Q 150 110 102 106 Z" fill="#0A0F1D" />
+                  <line x1="106" y1="102" x2="194" y2="102" stroke="#DFB25A" strokeWidth="2" />
+                  <polygon points="150,80 153,87 160,87 154,92 156,99 150,95 144,99 146,92 140,87 147,87" fill="#DFB25A" stroke="#B45309" strokeWidth="0.8" />
                 </g>
               )}
 
-              {/* 3. HORECA KOKSMUTS: Geproportioneerd over het hoofd (niet torenhoog) */}
+              {/* 3. HORECA KOKSMUTS */}
               {jobSector === "horeca" && (
                 <g id="chefHat" filter="url(#softShadow)">
-                  {/* Witte geplooide wolk (top y: 46, breedte 96px) */}
                   <path
-                    d="M 110 110 C 94 78, 104 46, 150 44 C 196 46, 206 78, 190 110 Z"
+                    d="M 112 98 C 100 68, 110 44, 150 44 C 190 44, 200 68, 188 98 Z"
                     fill="#FFFFFF"
                     stroke="#CBD5E1"
-                    strokeWidth="1.8"
+                    strokeWidth="1.5"
                   />
-                  {/* Plooilijntjes */}
-                  <path d="M 132 54 Q 128 85 130 108" stroke="#94A3B8" strokeWidth="1.2" fill="none" opacity="0.5" />
-                  <path d="M 150 46 Q 150 82 150 108" stroke="#94A3B8" strokeWidth="1.5" fill="none" opacity="0.5" />
-                  <path d="M 168 54 Q 172 85 170 108" stroke="#94A3B8" strokeWidth="1.2" fill="none" opacity="0.5" />
-                  {/* Band strak om het voorhoofd (y: 108 tot 118, breedte 88px) */}
-                  <rect x="106" y="108" width="88" height="11" rx="2.5" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.5" />
+                  <path d="M 134 52 Q 130 78 132 98" stroke="#CBD5E1" strokeWidth="1" fill="none" />
+                  <path d="M 150 45 Q 150 75 150 98" stroke="#CBD5E1" strokeWidth="1.2" fill="none" />
+                  <path d="M 166 52 Q 170 78 168 98" stroke="#CBD5E1" strokeWidth="1" fill="none" />
+                  <rect x="108" y="98" width="84" height="8" rx="2" fill="#FFFFFF" stroke="#CBD5E1" strokeWidth="1.2" />
                 </g>
               )}
 
-              {/* 4. STUDENT AFSTUDEERHOED (Mortarboard): Goed passend, 104px breed */}
+              {/* 4. STUDENT AFSTUDEERHOED */}
               {jobSector === "student" && (
                 <g id="graduationCap" filter="url(#softShadow)">
-                  {/* Schedelkapje direct op het hoofd */}
-                  <path d="M 116 114 C 116 90, 184 90, 184 114 Z" fill="#1E293B" />
-                  {/* Diamant plank netjes geproportioneerd (breedte 108px) */}
-                  <polygon points="150,56 204,70 150,84 96,70" fill="#0F172A" stroke="#334155" strokeWidth="1.8" />
-                  {/* Knoop & zwierige gouden tassel */}
-                  <circle cx="150" cy="70" r="3.5" fill="#DFB25A" />
-                  <path d="M 150 70 Q 186 76 194 100" stroke="#DFB25A" strokeWidth="2.2" fill="none" strokeLinecap="round" />
-                  <rect x="191" y="100" width="6" height="14" rx="1.5" fill="#DFB25A" />
+                  <path d="M 114 100 C 114 84, 186 84, 186 100 Z" fill="#1E293B" />
+                  <polygon points="150,60 198,72 150,84 102,72" fill="#0F172A" stroke="#334155" strokeWidth="1.5" />
+                  <circle cx="150" cy="72" r="3" fill="#DFB25A" />
+                  <path d="M 150 72 Q 182 76 188 94" stroke="#DFB25A" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+                  <rect x="186" y="94" width="5" height="10" rx="1" fill="#DFB25A" />
                 </g>
               )}
 
-              {/* 5. GEPENSIONEERD FLAT CAP: Strak over de kruin */}
+              {/* 5. GEPENSIONEERD FLAT CAP */}
               {jobSector === "gepensioneerd" && (
                 <g id="flatCap" filter="url(#softShadow)">
                   <path
-                    d="M 102 116 C 100 74, 172 68, 198 100 L 200 114 Q 150 122 102 116 Z"
+                    d="M 104 104 C 104 74, 168 70, 196 94 L 198 104 Q 150 110 104 104 Z"
                     fill="#78716C"
                     stroke="#57534E"
-                    strokeWidth="1.8"
+                    strokeWidth="1.5"
                   />
-                  <path d="M 112 114 Q 150 120 188 114" stroke="#44403C" strokeWidth="2" fill="none" />
+                  <path d="M 112 102 Q 150 108 188 102" stroke="#44403C" strokeWidth="1.5" fill="none" />
                 </g>
               )}
 
-              {/* 6. TECH KOPTELEFOON: Slank over de oren */}
+              {/* 6. TECH KOPTELEFOON */}
               {jobSector === "tech" && (
                 <g id="bigHeadphones" filter="url(#softShadow)">
-                  <path d="M 104 135 C 100 74, 200 74, 196 135" stroke="#334155" strokeWidth="6" fill="none" strokeLinecap="round" />
-                  <rect x="94" y="122" width="16" height="32" rx="7" fill="#1E293B" stroke="#DFB25A" strokeWidth="1.5" />
-                  <rect x="190" y="122" width="16" height="32" rx="7" fill="#1E293B" stroke="#DFB25A" strokeWidth="1.5" />
+                  <path d="M 106 135 C 102 74, 198 74, 194 135" stroke="#334155" strokeWidth="5" fill="none" strokeLinecap="round" />
+                  <rect x="96" y="124" width="14" height="28" rx="6" fill="#1E293B" stroke="#DFB25A" strokeWidth="1.5" />
+                  <rect x="190" y="124" width="14" height="28" rx="6" fill="#1E293B" stroke="#DFB25A" strokeWidth="1.5" />
                 </g>
               )}
 
