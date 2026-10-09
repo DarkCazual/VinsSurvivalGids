@@ -110,6 +110,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
   const jobOptions: { value: JobSector; label: string; icon: string; desc: string }[] = [
     { value: "vakman", label: "Vakman / Techniek", icon: "🔨", desc: "Bouw, installatie, montage" },
     { value: "hulpdiensten", label: "Hulpdiensten", icon: "🚨", desc: "Politie, brandweer, ambulance" },
+    { value: "horeca", label: "Horeca & Gastvrijheid", icon: "🍽️", desc: "Kok, hotel, restaurant, café" },
     { value: "ondernemer", label: "Ondernemer / Directeur", icon: "💼", desc: "MKB, ZZP of directie" },
     { value: "politiek", label: "Politiek, Overheid & Recht", icon: "⚖️", desc: "Beleid, justitie, advocatuur" },
     { value: "onderwijs", label: "Onderwijs & Wetenschap", icon: "📚", desc: "Docent, leraar, onderzoeker" },

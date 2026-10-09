@@ -6,11 +6,12 @@ export type IncomeLevel = 'budget' | 'modaal' | 'hoog';
 
 export type JobSector = 
   | 'vakman' 
+  | 'hulpdiensten'
+  | 'horeca'
   | 'ondernemer' 
   | 'kantoor' 
   | 'tech' 
   | 'zorg' 
-  | 'hulpdiensten'
   | 'onderwijs'
   | 'politiek'
   | 'student'

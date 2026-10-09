@@ -45,11 +45,12 @@ export function PersonaPassport({ persona, onEdit }: PersonaPassportProps) {
 
   const jobLabels: Record<string, string> = {
     "vakman": "Vakman / Bouw / Techniek 🔨",
+    "hulpdiensten": "Hulpdiensten (Politie, Brandweer, Ambulance) 🚨",
+    "horeca": "Horeca, Toerisme & Gastvrijheid 🍽️",
     "ondernemer": "Ondernemer / Directeur 💼",
     "kantoor": "Kantoor / Bedrijfsleven 🏢",
     "tech": "Tech / IT / Creatief 💻",
     "zorg": "Zorg & Welzijn 🩺",
-    "hulpdiensten": "Hulpdiensten (Politie, Brandweer, Ambulance) 🚨",
     "onderwijs": "Onderwijs & Wetenschap 📚",
     "politiek": "Politiek, Overheid & Advocatuur ⚖️",
     "student": "Student (MBO / HBO / WO) 🎓",
