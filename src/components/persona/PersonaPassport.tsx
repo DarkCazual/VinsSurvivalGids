@@ -31,6 +31,7 @@ export function PersonaPassport({ persona, onEdit }: PersonaPassportProps) {
 
   // Formatteer labels
   const ageLabels: Record<string, string> = {
+    "12-18": "12 - 18 jaar (Tiener / Scholier / Jeugd)",
     "18-25": "18 - 25 jaar (Jongvolwassen / Starter)",
     "26-40": "26 - 40 jaar (Millennial / Jonge Professional)",
     "41-64": "41 - 64 jaar (Ervaren / Gesetteld)",
@@ -129,16 +130,16 @@ export function PersonaPassport({ persona, onEdit }: PersonaPassportProps) {
 Je bent een meesterlijke direct-response copywriter en marketingstrateeg voor mijn onderneming.
 Gebruik het volgende gevalideerde Klantenpaspoort uit 'Vin's Survival Gids' als leidraad:
 
-- Naam Persona: ${persona.name}
-- Demografie: ${persona.gender === 'man' ? 'Man' : 'Vrouw'}, ${persona.ageGroup} jaar
-- Koopkracht & Inkomen: ${incomeLabels[persona.incomeLevel]}
-- Beroep: ${jobLabels[persona.jobSector]}
-- Woonsituatie: ${housingLabels[persona.housing]}
-- Gezinssituatie: ${familyLabels[persona.familySituation]}
+- Naam Persona: ${persona.name || 'Ideale Klant'}
+- Demografie: ${persona.gender === 'man' ? 'Man' : persona.gender === 'vrouw' ? 'Vrouw' : 'Niet gespecificeerd'}, ${persona.ageGroup ? `${persona.ageGroup} jaar` : 'Leeftijd niet gespecificeerd'}
+- Koopkracht & Inkomen: ${incomeLabels[persona.incomeLevel] || 'Nog niet gespecificeerd'}
+- Beroep: ${jobLabels[persona.jobSector] || 'Nog niet gespecificeerd'}
+- Woonsituatie: ${housingLabels[persona.housing] || 'Nog niet gespecificeerd'}
+- Gezinssituatie: ${familyLabels[persona.familySituation] || 'Nog niet gespecificeerd'}
 - Interesses: ${persona.lifestyles.join(', ') || 'Niet gespecificeerd'}
-- Actief op kanalen: ${persona.platforms.join(', ')}
-- Belangrijkste Koopmotief / Urgentie: ${motivationLabels[persona.coreMotivation]?.title}
-- Concrete Situatie & Pijnpunt: "${persona.customContext}"
+- Actief op kanalen: ${persona.platforms.join(', ') || 'Nog niet gespecificeerd'}
+- Belangrijkste Koopmotief / Urgentie: ${motivationLabels[persona.coreMotivation]?.title || 'Nog niet gespecificeerd'}
+- Concrete Situatie & Pijnpunt: "${persona.customContext || 'Geen specifieke context opgegeven'}"
 
 Opdracht:
 1. Schrijf een onweerstaanbare openingszin voor mijn website die direct inspeelt op zijn/haar grootste pijnpunt.
@@ -240,7 +241,7 @@ Opdracht:
               Document No.
             </span>
             <span className="text-sm font-mono font-bold text-[#dfb25a]">
-              VSG-2026-{persona.gender === "man" ? "M" : "V"}{persona.ageGroup.replace("+", "")}-{(persona.name || "KLANT").slice(0, 3).toUpperCase()}
+              VSG-2026-{persona.gender === "man" ? "M" : persona.gender === "vrouw" ? "V" : "X"}{persona.ageGroup ? persona.ageGroup.replace("+", "") : "00"}-{(persona.name || "KLANT").slice(0, 3).toUpperCase()}
             </span>
           </div>
         </div>

@@ -34,6 +34,19 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [showPassport, setShowPassport] = useState<boolean>(false);
 
+  // Synchroniseer wanneer data van buitenaf (per gebruiker) binnenkomt
+  React.useEffect(() => {
+    if (initialPersona) {
+      setPersona(initialPersona);
+      if (initialPersona.name && initialPersona.gender && initialPersona.ageGroup) {
+        setShowPassport(true);
+      } else {
+        setShowPassport(false);
+        setCurrentStep(1);
+      }
+    }
+  }, [initialPersona]);
+
   const totalSteps = 5;
 
   const updatePersona = <K extends keyof PersonaData>(key: K, value: PersonaData[K]) => {
@@ -77,6 +90,7 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
 
   // Knoppen en opties configuratie
   const ageOptions: { value: AgeGroup; label: string; desc: string; icon: string }[] = [
+    { value: "12-18", label: "12 - 18 jaar", desc: "Tiener, scholier, jeugd / sportdoelgroep", icon: "🥊" },
     { value: "18-25", label: "18 - 25 jaar", desc: "Jongvolwassen, student of starter", icon: "🌱" },
     { value: "26-40", label: "26 - 40 jaar", desc: "Millennial, gezinsstichter, ambitieus", icon: "🚀" },
     { value: "41-64", label: "41 - 64 jaar", desc: "Ervaren, gevestigd vermogen, doorgewinterd", icon: "💼" },

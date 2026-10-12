@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { PersonaData, DEFAULT_PERSONA } from "@/components/persona/types";
+import Link from "next/link";
+import { PersonaData } from "@/components/persona/types";
 import { AvatarDisplay } from "@/components/persona/AvatarDisplay";
 import { 
   Compass, 
@@ -16,25 +17,32 @@ import {
 } from "lucide-react";
 
 interface PersonaKompasProps {
-  userId?: string;
+  userId: string;
 }
 
 export function PersonaKompas({ userId }: PersonaKompasProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [persona, setPersona] = useState<PersonaData>(DEFAULT_PERSONA);
+  const [persona, setPersona] = useState<PersonaData | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      setPersona(null);
+      return;
+    }
     try {
-      const storageKey = userId ? `vsg_h1_data_${userId}` : "vsg_h1_data";
+      const storageKey = `vsg_h1_data_${userId}`;
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.persona) {
+        if (parsed.persona && parsed.persona.name?.trim()) {
           setPersona(parsed.persona);
+          return;
         }
       }
+      setPersona(null);
     } catch (e) {
       console.error("Fout bij laden van persona voor kompas:", e);
+      setPersona(null);
     }
   }, [userId]);
 
@@ -54,8 +62,8 @@ export function PersonaKompas({ userId }: PersonaKompasProps) {
               <span className="text-[10px] font-mono tracking-widest uppercase text-white/60">
                 Persona Kompas
               </span>
-              <span className="text-xs font-black text-white group-hover:text-[#dfb25a] transition">
-                {persona.name || "Klant Sophie"}
+              <span className={`text-xs font-bold transition ${persona ? "text-white group-hover:text-[#dfb25a]" : "text-amber-300"}`}>
+                {persona?.name || "Nog niet ontworpen"}
               </span>
             </div>
             <ChevronLeft className="w-4 h-4 text-[#dfb25a]" />
@@ -87,82 +95,105 @@ export function PersonaKompas({ userId }: PersonaKompasProps) {
               </button>
             </div>
 
-            {/* Check-in Vraag uit het boek */}
-            <div className="p-3.5 rounded-xl bg-[#dfb25a]/10 border border-[#dfb25a]/30 text-xs leading-relaxed space-y-1">
-              <div className="font-extrabold text-[#dfb25a] flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
-                <Target className="w-3.5 h-3.5" /> De Gouden Vraag:
-              </div>
-              <p className="text-[var(--text)] italic font-medium">
-                &ldquo;Zou <strong>{persona.name}</strong> deze naam direct snappen, vertrouwen en aanbevelen aan een vriend?&rdquo;
-              </p>
-            </div>
-
-            {/* Mini Avatar Kaartje */}
-            <div className="rounded-2xl p-4 bg-gradient-to-b from-[#2a170b] to-[#160b06] border border-[#dfb25a]/30 text-white space-y-3 shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-[#dfb25a]">
-                  <AvatarDisplay persona={persona} showHud={false} className="scale-75 -translate-y-5" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="text-sm font-extrabold">{persona.name}</div>
-                  <div className="text-[11px] text-[#dfb25a] capitalize">
-                    {persona.gender === "man" ? "Mannelijk" : "Vrouwelijk"} • {persona.ageGroup} jr
+            {persona ? (
+              <>
+                {/* Check-in Vraag uit het boek */}
+                <div className="p-3.5 rounded-xl bg-[#dfb25a]/10 border border-[#dfb25a]/30 text-xs leading-relaxed space-y-1">
+                  <div className="font-extrabold text-[#dfb25a] flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                    <Target className="w-3.5 h-3.5" /> De Gouden Vraag:
                   </div>
-                  <div className="text-[10px] text-white/70 capitalize">
-                    {persona.jobSector} • {persona.housing}
+                  <p className="text-[var(--text)] italic font-medium">
+                    &ldquo;Zou <strong>{persona.name}</strong> deze naam direct snappen, vertrouwen en aanbevelen aan een vriend?&rdquo;
+                  </p>
+                </div>
+
+                {/* Mini Avatar Kaartje */}
+                <div className="rounded-2xl p-4 bg-gradient-to-b from-[#2a170b] to-[#160b06] border border-[#dfb25a]/30 text-white space-y-3 shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-[#dfb25a]">
+                      <AvatarDisplay persona={persona} showHud={false} className="scale-75 -translate-y-5" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-sm font-extrabold">{persona.name}</div>
+                      <div className="text-[11px] text-[#dfb25a] capitalize">
+                        {persona.gender === "man" ? "Mannelijk" : persona.gender === "vrouw" ? "Vrouwelijk" : ""} • {persona.ageGroup ? `${persona.ageGroup} jr` : ""}
+                      </div>
+                      <div className="text-[10px] text-white/70 capitalize">
+                        {persona.jobSector} • {persona.housing}
+                      </div>
+                    </div>
                   </div>
+
+                  {/* RPG Stats */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[10px]">
+                    <div className="p-2 rounded-lg bg-black/30 border border-white/5 space-y-0.5">
+                      <span className="text-white/60 flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 text-emerald-400" /> Koopkracht:
+                      </span>
+                      <span className="font-bold capitalize text-emerald-300">
+                        {persona.incomeLevel}
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded-lg bg-black/30 border border-white/5 space-y-0.5">
+                      <span className="text-white/60 flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-amber-400" /> Motief:
+                      </span>
+                      <span className="font-bold capitalize text-amber-300 truncate block">
+                        {persona.coreMotivation}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Persona Quote */}
+                  {persona.customContext && (
+                    <div className="text-[11px] italic text-[#f7d57f] pt-1 leading-snug">
+                      &ldquo;{persona.customContext}&rdquo;
+                    </div>
+                  )}
+                </div>
+
+                {/* Klankbord checklist */}
+                <div className="space-y-2 text-xs">
+                  <div className="font-bold text-[11px] uppercase tracking-wider opacity-70">
+                    Snelle Klankbord Checklist:
+                  </div>
+                  <ul className="space-y-1.5 text-[11px] opacity-85">
+                    <li className="flex items-start gap-1.5">
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Past het taalniveau bij {persona.name}?</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Klinkt het te duur of juist te goedkoop voor deze doelgroep?</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>Roept de naam direct het gewenste koopmotief op?</span>
+                    </li>
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <div className="p-5 rounded-2xl bg-[#dfb25a]/10 border border-[#dfb25a]/30 text-xs space-y-4">
+                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                  <Compass className="w-4 h-4 text-[#dfb25a]" />
+                  <span>Geen Klantpersona Opgeslagen</span>
+                </div>
+                <p className="opacity-80 leading-relaxed text-xs">
+                  Je hebt in Hoofdstuk 1 nog geen klantpersona opgeslagen voor dit account. 
+                  Zodra je in Hoofdstuk 1 je ideale klant ontwerpt, kijkt deze hier realtime met je mee over je schouder bij het testen van je bedrijfsnaam!
+                </p>
+                <div>
+                  <Link
+                    href="/h1"
+                    className="inline-flex items-center gap-2 bg-gradient-brand text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md hover:opacity-90 transition"
+                  >
+                    Open Hoofdstuk 1 (Persona Studio) →
+                  </Link>
                 </div>
               </div>
-
-              {/* RPG Stats */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[10px]">
-                <div className="p-2 rounded-lg bg-black/30 border border-white/5 space-y-0.5">
-                  <span className="text-white/60 flex items-center gap-1">
-                    <DollarSign className="w-3 h-3 text-emerald-400" /> Koopkracht:
-                  </span>
-                  <span className="font-bold capitalize text-emerald-300">
-                    {persona.incomeLevel}
-                  </span>
-                </div>
-
-                <div className="p-2 rounded-lg bg-black/30 border border-white/5 space-y-0.5">
-                  <span className="text-white/60 flex items-center gap-1">
-                    <Zap className="w-3 h-3 text-amber-400" /> Motief:
-                  </span>
-                  <span className="font-bold capitalize text-amber-300 truncate block">
-                    {persona.coreMotivation}
-                  </span>
-                </div>
-              </div>
-
-              {/* Persona Quote */}
-              {persona.customContext && (
-                <div className="text-[11px] italic text-[#f7d57f] pt-1 leading-snug">
-                  &ldquo;{persona.customContext}&rdquo;
-                </div>
-              )}
-            </div>
-
-            {/* Klankbord checklist */}
-            <div className="space-y-2 text-xs">
-              <div className="font-bold text-[11px] uppercase tracking-wider opacity-70">
-                Snelle Klankbord Checklist:
-              </div>
-              <ul className="space-y-1.5 text-[11px] opacity-85">
-                <li className="flex items-start gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Past het taalniveau bij {persona.name}?</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Klinkt het te duur of juist te goedkoop voor deze doelgroep?</span>
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>Roept de naam direct het gewenste koopmotief op?</span>
-                </li>
-              </ul>
-            </div>
+            )}
 
           </div>
 

@@ -91,7 +91,7 @@ export const DEFAULT_H2_DATA: H2Data = {
     },
   ],
   winningName: null,
-  legalForm: "eenmanszaak",
+  legalForm: "twijfel",
   korChoice: "uitzoeken",
   businessAddress: "",
   postalCity: "",

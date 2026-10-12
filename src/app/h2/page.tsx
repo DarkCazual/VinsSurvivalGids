@@ -6,12 +6,9 @@ export default async function Hoofdstuk2Page() {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
 
-  if ((error || !user) && process.env.NODE_ENV !== "development") {
+  if (error || !user) {
     redirect("/login");
   }
 
-  const userId = user?.id || "gast-gebruiker";
-  const userEmail = user?.email || "ondernemer@vinssurvivalgids.nl";
-
-  return <H2Client userId={userId} userEmail={userEmail} />;
+  return <H2Client userId={user.id} userEmail={user.email || ""} />;
 }

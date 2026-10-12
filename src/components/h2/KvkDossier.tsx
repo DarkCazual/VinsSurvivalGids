@@ -33,7 +33,7 @@ export function KvkDossier({ data, onUpdateChecklist }: KvkDossierProps) {
   const handleCopyDossier = () => {
     const textToCopy = `=== KVK INSCHRIJF-SPIEKBRIEFJE (VIN'S SURVIVAL GIDS) ===
 Bedrijfsnaam: ${winningName || "[Nog niet gekozen]"}
-Rechtsvorm: ${legalForm.toUpperCase()}
+Rechtsvorm: ${legalForm === "twijfel" ? "Nog nader te bepalen" : legalForm.toUpperCase()}
 KOR-deelname: ${korChoice === "ja" ? "Ja (btw-vrijgesteld)" : korChoice === "nee" ? "Nee (reguliere btw)" : "Nog nader te bepalen"}
 Vestigingsadres: ${businessAddress || "-"}, ${postalCity || "-"}
 

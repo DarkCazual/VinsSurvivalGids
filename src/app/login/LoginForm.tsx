@@ -14,6 +14,18 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
+  // Verwijder legacy unscoped testdata zodat nieuwe accounts altijd schoon starten
+  useEffect(() => {
+    try {
+      localStorage.removeItem("vsg_h1_data");
+      localStorage.removeItem("vsg_h2_data");
+      localStorage.removeItem("vsg_brand_name");
+      localStorage.removeItem("vsg_h1_data_gast-gebruiker");
+      localStorage.removeItem("vsg_h2_data_gast-gebruiker");
+      localStorage.removeItem("vsg_brand_name_gast-gebruiker");
+    } catch (e) {}
+  }, []);
+
   // Lees eventuele foutmeldingen uit de callback URL (?error=...)
   useEffect(() => {
     const errorParam = searchParams.get("error");

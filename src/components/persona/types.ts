@@ -1,6 +1,6 @@
 export type Gender = 'man' | 'vrouw';
 
-export type AgeGroup = '18-25' | '26-40' | '41-64' | '65+';
+export type AgeGroup = '12-18' | '18-25' | '26-40' | '41-64' | '65+';
 
 export type IncomeLevel = 'budget' | 'modaal' | 'hoog';
 
@@ -45,28 +45,30 @@ export type CoreMotivation =
 
 export interface PersonaData {
   name: string;
-  gender: Gender;
-  ageGroup: AgeGroup;
-  incomeLevel: IncomeLevel;
-  jobSector: JobSector;
+  gender: Gender | '';
+  ageGroup: AgeGroup | '';
+  incomeLevel: IncomeLevel | '';
+  jobSector: JobSector | '';
   lifestyles: string[];
-  housing: Housing;
-  familySituation: FamilySituation;
+  housing: Housing | '';
+  familySituation: FamilySituation | '';
   platforms: Platform[];
-  coreMotivation: CoreMotivation;
+  coreMotivation: CoreMotivation | '';
   customContext: string;
 }
 
-export const DEFAULT_PERSONA: PersonaData = {
+export const EMPTY_PERSONA: PersonaData = {
   name: "",
-  gender: 'man',
-  ageGroup: '26-40',
-  incomeLevel: 'modaal',
-  jobSector: 'kantoor',
+  gender: '',
+  ageGroup: '',
+  incomeLevel: '',
+  jobSector: '',
   lifestyles: [],
-  housing: 'dorp',
-  familySituation: 'jong_gezin',
+  housing: '',
+  familySituation: '',
   platforms: [],
-  coreMotivation: 'snelheid',
+  coreMotivation: '',
   customContext: '',
 };
+
+export const DEFAULT_PERSONA: PersonaData = EMPTY_PERSONA;

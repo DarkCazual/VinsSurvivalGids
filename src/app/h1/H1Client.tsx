@@ -40,8 +40,8 @@ const EMPTY_MISSIE = {
 };
 
 export function H1Client({ userId, userEmail }: H1ClientProps) {
-  // Actieve tab / stap binnen Hoofdstuk 1
-  const [activeTab, setActiveTab] = useState<"idee" | "persona" | "missie" | "dossier">("persona");
+  // Actieve tab / stap binnen Hoofdstuk 1 - start netjes bij Stap 1: Idee
+  const [activeTab, setActiveTab] = useState<"idee" | "persona" | "missie" | "dossier">("idee");
 
   // State voor Stap 1: Idee - Schoon en leeg voor nieuwe accounts
   const [ideeData, setIdeeData] = useState(EMPTY_IDEE);
@@ -54,8 +54,15 @@ export function H1Client({ userId, userEmail }: H1ClientProps) {
 
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
+  // Bereken of onderdelen daadwerkelijk zijn ingevuld (echte lege save check)
+  const isIdeeComplete = Boolean(ideeData.aanbod?.trim() && ideeData.doelgroepKort?.trim());
+  const isPersonaComplete = Boolean(personaData.name?.trim() && personaData.gender && personaData.ageGroup);
+  const isMissieComplete = Boolean(missieData.doelgroep?.trim() && missieData.resultaat?.trim());
+  const isH1Complete = isIdeeComplete && isPersonaComplete && isMissieComplete;
+
   // Laad data per specifieke gebruiker uit localStorage
   useEffect(() => {
+    if (!userId) return;
     try {
       const storageKey = `vsg_h1_data_${userId}`;
       const saved = localStorage.getItem(storageKey);
@@ -76,11 +83,13 @@ export function H1Client({ userId, userEmail }: H1ClientProps) {
   }, [userId]);
 
   const handleSaveAll = () => {
+    if (!userId) return;
     try {
       const fullData = {
         idee: ideeData,
         persona: personaData,
         missie: missieData,
+        isCompleted: isH1Complete,
         updatedAt: new Date().toISOString(),
       };
       const storageKey = `vsg_h1_data_${userId}`;
@@ -409,27 +418,103 @@ export function H1Client({ userId, userEmail }: H1ClientProps) {
         {activeTab === "dossier" && (
           <div className="max-w-4xl mx-auto space-y-6">
             
-            {/* Voltooiings Banner */}
-            <div className="bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 border-2 border-emerald-500/40 p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4 text-center sm:text-left">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg">
-                  <Trophy className="w-8 h-8" />
+            {/* Voltooiings of Voortgangs Banner */}
+            {isH1Complete ? (
+              <div className="bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-emerald-500/20 border-2 border-emerald-500/40 p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4 text-center sm:text-left">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg">
+                    <Trophy className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white">
+                      Gefeliciteerd! Hoofdstuk 1 is Voltooid! 🎉
+                    </h3>
+                    <p className="text-xs text-white/80 mt-0.5">
+                      Je fundament staat als een huis: een concreet aanbod, een uitgedokterde klantpersona en een ijzersterke belofte. Hoofdstuk 2 is nu ontgrendeld!
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-black text-white">
-                    Gefeliciteerd! Hoofdstuk 1 is Voltooid! 🎉
-                  </h3>
-                  <p className="text-xs text-white/80 mt-0.5">
-                    Je fundament staat als een huis: een concreet aanbod, een uitgedokterde klantpersona en een ijzersterke belofte.
-                  </p>
-                </div>
+
+                <button
+                  onClick={handleSaveAll}
+                  className="px-6 py-3 rounded-xl bg-gradient-brand text-white font-extrabold text-xs shadow-lg hover:opacity-90 transition shrink-0 flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" /> Alles Opslaan in Account
+                </button>
               </div>
+            ) : (
+              <div className="bg-gradient-to-r from-amber-500/20 via-[#dfb25a]/15 to-amber-500/20 border-2 border-[#dfb25a]/40 p-6 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4 text-center sm:text-left">
+                  <div className="w-14 h-14 rounded-2xl bg-[#dfb25a]/30 text-[#dfb25a] flex items-center justify-center shrink-0 shadow-lg border border-[#dfb25a]/50">
+                    <FileCheck className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white">
+                      Hoofdstuk 1: Dossier in opbouw ⏳
+                    </h3>
+                    <p className="text-xs text-white/80 mt-0.5">
+                      Dit is een schone start. Doorloop Stap 1, 2 en 3 om je fundament vast te leggen en Hoofdstuk 2 te ontgrendelen.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSaveAll}
+                  className="px-6 py-3 rounded-xl bg-gradient-brand text-white font-extrabold text-xs shadow-lg hover:opacity-90 transition shrink-0 flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" /> Tussentijds Opslaan
+                </button>
+              </div>
+            )}
+
+            {/* Snelle Voortgang Checklist */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveTab("idee")}
+                className={`p-3.5 rounded-xl border text-left transition flex items-center justify-between ${
+                  isIdeeComplete 
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" 
+                    : "bg-[var(--section-bg)] border-black/10 dark:border-white/10 opacity-80 hover:opacity-100"
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-bold">1. Idee &amp; Aanbod</div>
+                  <div className="text-[11px] opacity-75">{isIdeeComplete ? ideeData.aanbod.slice(0, 24) + "..." : "Nog in te vullen"}</div>
+                </div>
+                <span className="text-xs font-bold">{isIdeeComplete ? "✓ Compleet" : "⚠️ Invullen"}</span>
+              </button>
 
               <button
-                onClick={handleSaveAll}
-                className="px-6 py-3 rounded-xl bg-gradient-brand text-white font-extrabold text-xs shadow-lg hover:opacity-90 transition shrink-0 flex items-center gap-2"
+                type="button"
+                onClick={() => setActiveTab("persona")}
+                className={`p-3.5 rounded-xl border text-left transition flex items-center justify-between ${
+                  isPersonaComplete 
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" 
+                    : "bg-[var(--section-bg)] border-black/10 dark:border-white/10 opacity-80 hover:opacity-100"
+                }`}
               >
-                <Save className="w-4 h-4" /> Alles Opslaan in Account
+                <div>
+                  <div className="text-xs font-bold">2. Persona Studio</div>
+                  <div className="text-[11px] opacity-75">{isPersonaComplete ? personaData.name : "Nog te ontwerpen"}</div>
+                </div>
+                <span className="text-xs font-bold">{isPersonaComplete ? "✓ Compleet" : "⚠️ Ontwerpen"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("missie")}
+                className={`p-3.5 rounded-xl border text-left transition flex items-center justify-between ${
+                  isMissieComplete 
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" 
+                    : "bg-[var(--section-bg)] border-black/10 dark:border-white/10 opacity-80 hover:opacity-100"
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-bold">3. Missie &amp; Belofte</div>
+                  <div className="text-[11px] opacity-75">{isMissieComplete ? "Belofte gereed" : "Nog te formuleren"}</div>
+                </div>
+                <span className="text-xs font-bold">{isMissieComplete ? "✓ Compleet" : "⚠️ Formuleren"}</span>
               </button>
             </div>
 
@@ -444,15 +529,15 @@ export function H1Client({ userId, userEmail }: H1ClientProps) {
                 <div className="text-xs space-y-2">
                   <div>
                     <span className="opacity-60 block text-[10px]">Aanbod:</span>
-                    <strong className="block text-sm">{ideeData.aanbod}</strong>
+                    <strong className="block text-sm">{ideeData.aanbod || "[Nog niet ingevuld in Stap 1]"}</strong>
                   </div>
                   <div>
                     <span className="opacity-60 block text-[10px]">Doelgroep:</span>
-                    <p className="opacity-90">{ideeData.doelgroepKort}</p>
+                    <p className="opacity-90">{ideeData.doelgroepKort || "[Nog niet ingevuld]"}</p>
                   </div>
                   <div>
                     <span className="opacity-60 block text-[10px]">Waarom jij:</span>
-                    <p className="opacity-90">{ideeData.waaromJij}</p>
+                    <p className="opacity-90">{ideeData.waaromJij || "[Nog niet ingevuld]"}</p>
                   </div>
                 </div>
               </div>
@@ -463,22 +548,22 @@ export function H1Client({ userId, userEmail }: H1ClientProps) {
                   <UserCheck className="w-4 h-4" /> 2. Persona Paspoort
                 </div>
                 <div className="text-xs space-y-1.5">
-                  <div className="font-extrabold text-sm">{personaData.name}</div>
+                  <div className="font-extrabold text-sm">{personaData.name || "[Persona nog niet benoemd]"}</div>
                   <div className="opacity-80">
-                    {personaData.gender === "man" ? "Man" : "Vrouw"} • {personaData.ageGroup} jr • {personaData.jobSector}
+                    {personaData.gender ? (personaData.gender === "man" ? "Man" : "Vrouw") : "Geslacht n.t.b."} • {personaData.ageGroup ? `${personaData.ageGroup} jr` : "Leeftijd n.t.b."} • {personaData.jobSector || "Beroep n.t.b."}
                   </div>
                   <div className="text-emerald-500 font-semibold capitalize">
-                    Inkomen: {personaData.incomeLevel}
+                    Inkomen: {personaData.incomeLevel || "Nog te kiezen"}
                   </div>
                   <div className="text-amber-500 font-semibold capitalize">
-                    Koopmotief: {personaData.coreMotivation}
+                    Koopmotief: {personaData.coreMotivation || "Nog te kiezen"}
                   </div>
                   <div className="pt-2">
                     <button
                       onClick={() => setActiveTab("persona")}
                       className="text-[11px] text-[#dfb25a] underline font-bold"
                     >
-                      Bekijk volledig Klantpaspoort →
+                      Bekijk / Ontwerp Klantpaspoort →
                     </button>
                   </div>
                 </div>
@@ -493,12 +578,18 @@ export function H1Client({ userId, userEmail }: H1ClientProps) {
                   &ldquo;{completeMissionStatement}&rdquo;
                 </p>
                 <div className="pt-2">
-                  <Link
-                    href="/h2"
-                    className="inline-block text-xs font-bold text-gradient-brand underline"
-                  >
-                    Ga naar Hoofdstuk 2 (De Basis &amp; KvK) →
-                  </Link>
+                  {isH1Complete ? (
+                    <Link
+                      href="/h2"
+                      className="inline-block text-xs font-bold text-gradient-brand underline"
+                    >
+                      Ga naar Hoofdstuk 2 (De Basis &amp; KvK) →
+                    </Link>
+                  ) : (
+                    <span className="text-xs opacity-60 font-medium">
+                      🔒 Hoofdstuk 2 ontgrendelt na afronding van stap 1, 2 en 3
+                    </span>
+                  )}
                 </div>
               </div>
 
