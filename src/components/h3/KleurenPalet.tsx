@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ColorPaletteData, ColorHarmony, LogoType } from "./types";
 import { 
   hexToRgb, 
@@ -11,7 +11,9 @@ import {
   calculateLightReplacement, 
   hasVibratingContrast,
   hexToHsl,
-  hslToHex
+  hslToHex,
+  getBestTextColor,
+  extractColorsFromImage
 } from "@/lib/color/colorUtils";
 import { 
   Sparkles, 
@@ -24,13 +26,18 @@ import {
   HelpCircle,
   Eye,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Upload,
+  Pipette,
+  Image as ImageIcon,
+  CheckCircle2
 } from "lucide-react";
 
 interface KleurenPaletProps {
   data: ColorPaletteData;
   companyName: string;
   selectedLogoType: LogoType | "";
+  logoUrl?: string;
   onChange: (updated: ColorPaletteData) => void;
   onNext: () => void;
   onBack: () => void;
@@ -51,6 +58,7 @@ export function KleurenPalet({
   data, 
   companyName, 
   selectedLogoType,
+  logoUrl,
   onChange, 
   onNext, 
   onBack 
@@ -62,15 +70,25 @@ export function KleurenPalet({
   const [harmony, setHarmony] = useState<ColorHarmony>(data.harmony || "complementair");
   const [showPsychology, setShowPsychology] = useState(false);
 
+  // Kleurextractie uit upload state
+  const [extractedColors, setExtractedColors] = useState<string[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Bereken harmoniekleuren
   const harmonies = getHarmonyColors(primary);
   const activeHarmonies = harmonies[harmony] || [];
 
-  // Bereken contrasten
-  const contrastTextOnPrimary = getContrastRatio(primary, light);
-  const contrastTextOnAccent = getContrastRatio(accent, dark);
+  // Bereken de beste tekstkleuren volgens WCAG 2.1 (Sectie 5.4)
+  const bestTextOnPrimary = getBestTextColor(primary, dark, light);
+  const bestTextOnAccent = getBestTextColor(accent, dark, light);
+  const bestTextOnDark = getBestTextColor(dark, dark, light);
+  const bestTextOnLight = getBestTextColor(light, dark, light);
+
   const contrastDarkOnLight = getContrastRatio(dark, light);
   const isVibrating = hasVibratingContrast(primary, accent);
+  const accentButtonBorder = getContrastRatio(accent, light) < 3.0 ? `1.5px solid ${dark}` : "none";
 
   const handlePrimaryChange = (newHex: string) => {
     setPrimary(newHex);
@@ -122,6 +140,61 @@ export function KleurenPalet({
     }
   };
 
+  // Upload handler voor afbeeldingen & logo's
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setUploadPreview(result);
+      processImageForColors(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const processImageForColors = (imageUrl: string) => {
+    setIsExtracting(true);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = async () => {
+      const colors = await extractColorsFromImage(img, 6);
+      setExtractedColors(colors);
+      setIsExtracting(false);
+
+      // Als er bruikbare kleuren zijn, pas de eerste 2 meteen toe
+      if (colors.length >= 1) {
+        handlePrimaryChange(colors[0]);
+      }
+      if (colors.length >= 2) {
+        handleSelectAccent(colors[1]);
+      }
+    };
+    img.onerror = () => {
+      setIsExtracting(false);
+    };
+    img.src = imageUrl;
+  };
+
+  // Pipet tool via Native EyeDropper API (in moderne Chrome/Edge)
+  const handleEyeDropper = async () => {
+    if (typeof window !== "undefined" && "EyeDropper" in window) {
+      try {
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
+        if (result?.sRGBHex) {
+          handlePrimaryChange(result.sRGBHex);
+        }
+      } catch (e) {
+        // Gebruiker heeft geannuleerd
+      }
+    } else {
+      // Fallback
+      fileInputRef.current?.click();
+    }
+  };
+
   const confirmPalette = () => {
     onChange({
       ...data,
@@ -132,6 +205,11 @@ export function KleurenPalet({
       harmony,
       isConfirmed: true,
     });
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("vsg_brand_style_changed"));
+    }
+
     onNext();
   };
 
@@ -159,15 +237,17 @@ export function KleurenPalet({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowPsychology(!showPsychology)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold transition-all text-[#dfb25a]"
-          >
-            <HelpCircle className="w-4 h-4" />
-            <span>{showPsychology ? "Verberg Kleurenpsychologie" : "Kleurenpsychologie"}</span>
-            {showPsychology ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowPsychology(!showPsychology)}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold transition-all text-[#dfb25a]"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span>{showPsychology ? "Verberg Kleurenpsychologie" : "Kleurenpsychologie"}</span>
+              {showPsychology ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         {/* Uitklapbaar kleurenpsychologie blok uit het boek */}
@@ -179,9 +259,12 @@ export function KleurenPalet({
                 onClick={() => handlePrimaryChange(c.hex)}
                 className="p-3 rounded-xl bg-black/40 border border-white/10 hover:border-[#dfb25a] cursor-pointer transition-all flex items-start gap-2.5"
               >
-                <span className="w-4 h-4 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: c.hex }} />
+                <span className="w-4 h-4 rounded-full mt-0.5 shrink-0 shadow-sm" style={{ backgroundColor: c.hex }} />
                 <div>
-                  <span className="font-bold text-xs text-white block">{c.name}</span>
+                  <h4 className="font-extrabold text-xs text-white flex items-center gap-1.5">
+                    {c.name}
+                    <span className="font-mono text-[10px] text-white/50">{c.hex}</span>
+                  </h4>
                   <p className="text-[11px] text-white/70 leading-snug mt-0.5">{c.meaning}</p>
                 </div>
               </div>
@@ -190,19 +273,133 @@ export function KleurenPalet({
         )}
       </div>
 
-      {/* Waarschuwing bij trillend contrast */}
+      {/* Waarschuwing Trillend Contrast (Sectie 5.4 uit boek) */}
       {isVibrating && (
-        <div className="p-4 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex gap-3 items-center shadow-sm">
-          <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+        <div className="p-4 rounded-2xl bg-amber-500/15 border-2 border-amber-500/50 text-amber-200 flex items-start gap-3 text-xs leading-relaxed">
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="font-bold">Waarschuwing: Trillend contrast gedetecteerd!</strong>
-            <p className="text-[11px] mt-0.5">
+            <strong className="block font-bold text-amber-300">Waarschuwing: Trillend Contrast!</strong>
+            <p>
               Jouw hoofd- en steunkleur zijn allebei zeer fel en ongeveer even licht. Naast elkaar gaan ze &apos;trillen&apos; aan de ogen. 
               Maak één van de twee iets donkerder of rustiger voor een betere uitstraling.
             </p>
           </div>
         </div>
       )}
+
+      {/* Waarschuwing WCAG Contrast Fallback (Sectie 5.4 uit boek) */}
+      {(bestTextOnPrimary.isFallback || bestTextOnAccent.isFallback) && (
+        <div className="p-4 rounded-2xl bg-blue-500/15 border border-blue-500/40 text-blue-200 flex items-start gap-3 text-xs leading-relaxed">
+          <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="block font-bold text-blue-300">WCAG 2.1 Contrastwaarschuwing:</strong>
+            <p>
+              {bestTextOnPrimary.isFallback ? bestTextOnPrimary.warning : bestTextOnAccent.warning}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* NIEUW: Kleuren Uploaden & Extraheren Blok */}
+      <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/10 dark:border-white/10 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#dfb25a]/20 text-[#dfb25a] flex items-center justify-center">
+              <Upload className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm text-[var(--text)]">
+                Kleuren uploaden uit jouw foto of logo
+              </h3>
+              <p className="text-xs opacity-75">
+                Upload een sfeerfoto, logo of inspiratiebeeld. Ons systeem extraheert automatisch de dominante merkkleuren.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              accept="image/*" 
+              onChange={handleImageFileChange}
+              className="hidden" 
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-[#dfb25a]/20 hover:text-[#dfb25a] border border-black/10 dark:border-white/10 text-xs font-bold transition-all flex items-center gap-1.5"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Afbeelding</span>
+            </button>
+
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadPreview(logoUrl);
+                  processImageForColors(logoUrl);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-[#dfb25a]/20 hover:text-[#dfb25a] border border-black/10 dark:border-white/10 text-xs font-bold transition-all flex items-center gap-1.5"
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>Gebruik Gegenereerd Logo</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleEyeDropper}
+              title="Kies een kleur direct van het scherm (Pipet)"
+              className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10 text-xs font-bold transition-all"
+            >
+              <Pipette className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Geëxtraheerde Kleuren Swatches */}
+        {extractedColors.length > 0 && (
+          <div className="pt-3 border-t border-black/5 dark:border-white/5 space-y-2">
+            <span className="text-[11px] font-bold opacity-75 uppercase tracking-wider block">
+              Gevonden Kleuren in afbeelding (klik om toe te wijzen):
+            </span>
+            <div className="flex flex-wrap gap-2.5 items-center">
+              {uploadPreview && (
+                <div className="w-10 h-10 rounded-lg overflow-hidden border border-black/20 shrink-0">
+                  <img src={uploadPreview} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {extractedColors.map((hex, i) => (
+                <div key={i} className="flex items-center gap-1.5 p-1.5 rounded-xl bg-[var(--surface)] border border-black/10 shadow-xs">
+                  <span className="w-7 h-7 rounded-lg shadow-inner" style={{ backgroundColor: hex }} />
+                  <div className="text-[10px] space-y-0.5">
+                    <span className="font-mono font-bold block">{hex}</span>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handlePrimaryChange(hex)}
+                        className="px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 hover:bg-[#dfb25a] hover:text-black font-semibold text-[9px] transition-all"
+                      >
+                        Hoofd
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSelectAccent(hex)}
+                        className="px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 hover:bg-[#dfb25a] hover:text-black font-semibold text-[9px] transition-all"
+                      >
+                        Steun
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Twee kolommen: Kleurkiezer + Harmonie-wiel links | 4-kleuren kaarten & Preview rechts */}
       <div className="grid lg:grid-cols-12 gap-6">
@@ -304,76 +501,96 @@ export function KleurenPalet({
                       <stop offset="100%" stopColor="#ff0000" />
                     </linearGradient>
                   </defs>
-                  {/* Regenboog ring */}
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="url(#rainbow)" strokeWidth="16" />
-                  
-                  {/* Hoofdkleur marker */}
+
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="url(#rainbow)"
+                    strokeWidth="16"
+                  />
+
+                  {/* Marker voor Hoofdkleur */}
                   {(() => {
                     const hsl = hexToHsl(primary);
                     const rad = (hsl.h * Math.PI) / 180;
                     const cx = 50 + 40 * Math.cos(rad);
                     const cy = 50 + 40 * Math.sin(rad);
                     return (
-                      <circle cx={cx} cy={cy} r="6" fill={primary} stroke="#FFFFFF" strokeWidth="2.5" />
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="6"
+                        fill={primary}
+                        stroke="#ffffff"
+                        strokeWidth="2.5"
+                        className="drop-shadow-md"
+                      />
                     );
                   })()}
 
-                  {/* Steunkleur marker */}
+                  {/* Marker voor Steunkleur */}
                   {(() => {
                     const hsl = hexToHsl(accent);
                     const rad = (hsl.h * Math.PI) / 180;
                     const cx = 50 + 40 * Math.cos(rad);
                     const cy = 50 + 40 * Math.sin(rad);
                     return (
-                      <circle cx={cx} cy={cy} r="5" fill={accent} stroke="#000000" strokeWidth="2" />
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="5"
+                        fill={accent}
+                        stroke="#000000"
+                        strokeWidth="2"
+                        className="drop-shadow-md"
+                      />
                     );
                   })()}
                 </svg>
 
-                {/* Middelpunt logo of label */}
-                <div className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-[var(--surface)] shadow-md border border-black/10 dark:border-white/10 flex flex-col items-center justify-center text-[10px] font-black text-center leading-tight">
-                  <span className="text-[#dfb25a]">360°</span>
-                  <span className="opacity-60 text-[8px]">Harmonie</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-[10px] uppercase font-black opacity-60">Harmonie</span>
+                  <span className="text-xs font-black capitalize text-[var(--text)]">{harmony}</span>
                 </div>
               </div>
 
-              {/* Berekende Harmonie Tegels */}
-              <div className="flex-1 space-y-2 w-full">
-                <span className="text-xs font-bold text-[var(--text)] block">
-                  Berekende opties voor <strong className="capitalize text-[#dfb25a]">{harmony}</strong>:
+              {/* Berekende opties voor deze harmonie */}
+              <div className="space-y-2 w-full max-w-xs">
+                <span className="text-xs font-bold opacity-75 block">
+                  Berekende opties ({activeHarmonies.length}):
                 </span>
                 <div className="grid grid-cols-2 gap-2">
                   {activeHarmonies.map((hex, idx) => {
                     const isSelected = accent.toLowerCase() === hex.toLowerCase();
                     return (
                       <button
-                        key={`${hex}-${idx}`}
+                        key={idx}
                         type="button"
                         onClick={() => handleSelectAccent(hex)}
-                        className={`p-2.5 rounded-xl border-2 transition-all flex items-center justify-between group ${
-                          isSelected 
-                            ? "border-[#dfb25a] bg-[#dfb25a]/10 shadow-sm" 
-                            : "border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 bg-[var(--surface)]"
+                        className={`p-2.5 rounded-xl border flex items-center justify-between text-left transition-all ${
+                          isSelected
+                            ? "border-[#dfb25a] ring-2 ring-[#dfb25a]/30 shadow-md bg-[var(--surface)]"
+                            : "border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 bg-[var(--surface)]/70"
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-lg border border-black/10 shadow-inner" style={{ backgroundColor: hex }} />
-                          <span className="font-mono text-xs font-bold">{hex}</span>
+                          <span 
+                            className="w-5 h-5 rounded-lg border border-black/10 shadow-sm shrink-0" 
+                            style={{ backgroundColor: hex }} 
+                          />
+                          <span className="font-mono text-xs font-bold text-[var(--text)] uppercase">{hex}</span>
                         </div>
-                        {isSelected ? (
-                          <span className="w-4 h-4 rounded-full bg-[#dfb25a] text-black flex items-center justify-center text-[10px] font-bold">✓</span>
-                        ) : (
-                          <span className="text-[10px] opacity-50 group-hover:opacity-100">Kies</span>
-                        )}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#dfb25a]" />}
                       </button>
                     );
                   })}
                 </div>
 
-                {/* Recept tip uit het boek */}
-                <p className="text-[11px] opacity-70 italic pt-1 leading-snug">
-                  💡 <strong>Vincents favoriete recept:</strong> &ldquo;Gebruik één complementaire steunkleur om knoppen direct te laten opvallen, en monochrome rusttinten voor achtergronden.&rdquo;
-                </p>
+                <div className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 text-[11px] opacity-80 leading-snug">
+                  💡 <strong>Vincents favoriet:</strong> Eén complementaire accentkleur voor maximale aandacht, met monochrome tinten voor rust en gezag.
+                </div>
               </div>
 
             </div>
@@ -390,7 +607,10 @@ export function KleurenPalet({
 
             <div className="grid grid-cols-2 gap-3">
               {/* 1. Hoofdkleur */}
-              <div className="rounded-xl p-3 border border-black/10 shadow-sm" style={{ backgroundColor: primary, color: light }}>
+              <div 
+                className="rounded-xl p-3 border border-black/10 shadow-sm" 
+                style={{ backgroundColor: primary, color: bestTextOnPrimary.textColor }}
+              >
                 <span className="text-[10px] font-black uppercase tracking-wider block opacity-80">Hoofdkleur</span>
                 <span className="font-mono text-sm font-black block mt-1">{primary}</span>
                 <span className="text-[9px] opacity-75 font-mono block">RGB {rgbPrimary.r},{rgbPrimary.g},{rgbPrimary.b}</span>
@@ -398,7 +618,10 @@ export function KleurenPalet({
               </div>
 
               {/* 2. Steunkleur */}
-              <div className="rounded-xl p-3 border border-black/10 shadow-sm" style={{ backgroundColor: accent, color: dark }}>
+              <div 
+                className="rounded-xl p-3 border border-black/10 shadow-sm" 
+                style={{ backgroundColor: accent, color: bestTextOnAccent.textColor }}
+              >
                 <span className="text-[10px] font-black uppercase tracking-wider block opacity-80">Steunkleur</span>
                 <span className="font-mono text-sm font-black block mt-1">{accent}</span>
                 <span className="text-[9px] opacity-75 font-mono block">RGB {rgbAccent.r},{rgbAccent.g},{rgbAccent.b}</span>
@@ -406,14 +629,20 @@ export function KleurenPalet({
               </div>
 
               {/* 3. Zwart-vervanger */}
-              <div className="rounded-xl p-3 border border-black/10 shadow-sm" style={{ backgroundColor: dark, color: light }}>
+              <div 
+                className="rounded-xl p-3 border border-black/10 shadow-sm" 
+                style={{ backgroundColor: dark, color: bestTextOnDark.textColor }}
+              >
                 <span className="text-[10px] font-black uppercase tracking-wider block opacity-80">Zwart-vervanger</span>
                 <span className="font-mono text-sm font-black block mt-1">{dark}</span>
                 <span className="text-[9px] opacity-75 block">Tekst &amp; diepte</span>
               </div>
 
               {/* 4. Wit-vervanger */}
-              <div className="rounded-xl p-3 border border-black/10 shadow-sm" style={{ backgroundColor: light, color: dark }}>
+              <div 
+                className="rounded-xl p-3 border border-black/10 shadow-sm" 
+                style={{ backgroundColor: light, color: bestTextOnLight.textColor }}
+              >
                 <span className="text-[10px] font-black uppercase tracking-wider block opacity-80">Wit-vervanger</span>
                 <span className="font-mono text-sm font-black block mt-1">{light}</span>
                 <span className="text-[9px] opacity-75 block">Achtergrond &amp; rust</span>
@@ -431,9 +660,17 @@ export function KleurenPalet({
               <div className="flex justify-between items-center">
                 <span className="opacity-75 text-[11px]">Contrast op Hoofdkleur:</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  contrastTextOnPrimary >= 4.5 ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/20 text-amber-500"
+                  bestTextOnPrimary.ratio >= 4.5 ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/20 text-amber-500"
                 }`}>
-                  {contrastTextOnPrimary}:1 ({contrastTextOnPrimary >= 4.5 ? "AA ✓" : "Let op"})
+                  {bestTextOnPrimary.ratio}:1 ({bestTextOnPrimary.ratio >= 4.5 ? "AA ✓" : "Fallback"})
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="opacity-75 text-[11px]">Contrast op Steunkleur:</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                  bestTextOnAccent.ratio >= 4.5 ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/20 text-amber-500"
+                }`}>
+                  {bestTextOnAccent.ratio}:1 ({bestTextOnAccent.ratio >= 4.5 ? "AA ✓" : "Fallback"})
                 </span>
               </div>
             </div>
@@ -445,30 +682,37 @@ export function KleurenPalet({
               <Eye className="w-3.5 h-3.5 text-[#dfb25a]" /> Live Mini-Website Preview
             </span>
 
-            {/* Browser frame preview */}
+            {/* Browser frame preview met gegarandeerde WCAG-contrasten */}
             <div 
               className="rounded-xl overflow-hidden shadow-lg border border-black/10 text-xs transition-colors duration-300"
               style={{ backgroundColor: light, color: dark }}
             >
               {/* Browser balk */}
-              <div className="px-3 py-1.5 flex items-center justify-between border-b" style={{ backgroundColor: primary, color: light }}>
+              <div 
+                className="px-3 py-1.5 flex items-center justify-between border-b" 
+                style={{ backgroundColor: primary, color: bestTextOnPrimary.textColor }}
+              >
                 <span className="font-extrabold text-[11px] truncate">{companyName || "Café De Beer"}</span>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accent }} />
+                <span className="w-2.5 h-2.5 rounded-full shadow-xs" style={{ backgroundColor: accent }} />
               </div>
 
               {/* Mini Hero */}
               <div className="p-4 space-y-2.5">
-                <h4 className="font-black text-sm leading-tight">
+                <h4 className="font-black text-sm leading-tight" style={{ color: dark }}>
                   Het adres voor vakmanschap en passie.
                 </h4>
-                <p className="text-[11px] opacity-80 leading-relaxed">
+                <p className="text-[11px] opacity-80 leading-relaxed" style={{ color: dark }}>
                   Geen concessies aan kwaliteit. Ontdek onze unieke aanpak en ervaar het verschil.
                 </p>
                 <div className="pt-1">
                   <button
                     type="button"
                     className="px-3.5 py-1.5 rounded-lg font-black text-[11px] shadow-sm transition-transform active:scale-95"
-                    style={{ backgroundColor: accent, color: dark }}
+                    style={{ 
+                      backgroundColor: accent, 
+                      color: bestTextOnAccent.textColor,
+                      border: accentButtonBorder 
+                    }}
                   >
                     Neem contact op →
                   </button>

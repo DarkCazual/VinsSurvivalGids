@@ -155,6 +155,9 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
       const next = { ...prev, colors: updatedColors, updatedAt: new Date().toISOString() };
       try {
         localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("vsg_brand_style_changed"));
+        }
       } catch (e) {}
       return next;
     });
@@ -386,6 +389,7 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
             data={h3Data.colors}
             companyName={h3Data.companyName}
             selectedLogoType={h3Data.logo.selectedLogoType}
+            logoUrl={h3Data.logo.selectedLogoUrl}
             onChange={updateColors}
             onNext={() => setActiveTab("typografie")}
             onBack={() => setActiveTab("generator")}

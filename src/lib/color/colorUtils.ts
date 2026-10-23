@@ -233,3 +233,120 @@ export function hasVibratingContrast(hex1: string, hex2: string): boolean {
   const isSimilarLightness = Math.abs(hsl1.l - hsl2.l) < 20;
   return isHighSat && isSimilarLightness;
 }
+
+// Berekent de beste tekstkleur (zwart- of wit-vervanger) volgens WCAG 2.1 (Sectie 5.4)
+export function getBestTextColor(
+  bgHex: string,
+  darkCandidate: string,
+  lightCandidate: string
+): { textColor: string; ratio: number; isFallback: boolean; warning?: string } {
+  const ratioDark = getContrastRatio(bgHex, darkCandidate);
+  const ratioLight = getContrastRatio(bgHex, lightCandidate);
+
+  // Als minimaal één kandidaat AA haalt (>= 4.5:1), neem de hoogste
+  if (ratioDark >= 4.5 || ratioLight >= 4.5) {
+    if (ratioDark >= ratioLight) {
+      return { textColor: darkCandidate, ratio: ratioDark, isFallback: false };
+    } else {
+      return { textColor: lightCandidate, ratio: ratioLight, isFallback: false };
+    }
+  }
+
+  // Noodoplossing uit het boek (Sectie 5.4): als geen van beide 4,5:1 haalt
+  const ratioPureWhite = getContrastRatio(bgHex, "#FFFFFF");
+  const ratioPureBlack = getContrastRatio(bgHex, "#111111");
+
+  if (ratioPureWhite >= ratioPureBlack) {
+    return {
+      textColor: "#FFFFFF",
+      ratio: ratioPureWhite,
+      isFallback: true,
+      warning: "Op deze kleur haalt geen van je tekstkleuren de 4,5:1 contrastnorm. We gebruiken puur wit als veilige noodoplossing."
+    };
+  } else {
+    return {
+      textColor: "#111111",
+      ratio: ratioPureBlack,
+      isFallback: true,
+      warning: "Op deze kleur haalt geen van je tekstkleuren de 4,5:1 contrastnorm. We gebruiken puur zwart als veilige noodoplossing."
+    };
+  }
+}
+
+// Kleurextractie uit een geüploade afbeelding via een offscreen HTML5 canvas
+export function extractColorsFromImage(
+  imageElement: HTMLImageElement,
+  maxColors: number = 6
+): Promise<string[]> {
+  return new Promise((resolve) => {
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(["#1E3A8A", "#DFB25A", "#059669", "#EA580C"]);
+        return;
+      }
+
+      // Schaal omlaag naar 64x64 voor snelle analyse
+      const size = 64;
+      canvas.width = size;
+      canvas.height = size;
+      ctx.drawImage(imageElement, 0, 0, size, size);
+
+      const imgData = ctx.getImageData(0, 0, size, size).data;
+      const colorCounts: Record<string, { count: number; rgb: RGB }> = {};
+
+      for (let i = 0; i < imgData.length; i += 4) {
+        const r = imgData[i];
+        const g = imgData[i + 1];
+        const b = imgData[i + 2];
+        const a = imgData[i + 3];
+
+        // Sla transparante pixels en extreme uitschieters (bijna puur wit/zwart achtergronden) deels over
+        if (a < 128) continue;
+
+        // Kwantiseer naar stappen van 16 om tinten te groeperen
+        const quantize = (v: number) => Math.round(v / 16) * 16;
+        const qR = Math.min(255, quantize(r));
+        const qG = Math.min(255, quantize(g));
+        const qB = Math.min(255, quantize(b));
+
+        const key = `${qR},${qG},${qB}`;
+        if (!colorCounts[key]) {
+          colorCounts[key] = { count: 0, rgb: { r: qR, g: qG, b: qB } };
+        }
+        colorCounts[key].count += 1;
+      }
+
+      // Sorteer op frequentie en filter bijna identieke kleuren
+      const sorted = Object.values(colorCounts).sort((a, b) => b.count - a.count);
+      const chosenHexes: string[] = [];
+
+      for (const item of sorted) {
+        const hex = rgbToHex(item.rgb);
+        const hsl = hexToHsl(hex);
+
+        // Geef voorrang aan kleuren met verzadiging (geen saaie grijstinten)
+        const isTooClose = chosenHexes.some(existing => {
+          const exHsl = hexToHsl(existing);
+          return Math.abs(exHsl.h - hsl.h) < 25 && Math.abs(exHsl.l - hsl.l) < 20;
+        });
+
+        if (!isTooClose) {
+          chosenHexes.push(hex);
+          if (chosenHexes.length >= maxColors) break;
+        }
+      }
+
+      if (chosenHexes.length === 0) {
+        chosenHexes.push("#1E3A8A", "#DFB25A", "#059669");
+      }
+
+      resolve(chosenHexes);
+    } catch (e) {
+      console.error("Fout bij kleurextractie:", e);
+      resolve(["#1E3A8A", "#DFB25A", "#059669"]);
+    }
+  });
+}
+

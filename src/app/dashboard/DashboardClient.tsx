@@ -109,15 +109,64 @@ export function DashboardClient({ userId, userEmail }: DashboardClientProps) {
     }
   };
 
+  const [isCustomStyleActive, setIsCustomStyleActive] = useState(false);
+  const [hasCustomPalette, setHasCustomPalette] = useState(false);
+  const [brandMeta, setBrandMeta] = useState<{ companyName?: string; font?: string; primary?: string; accent?: string }>({});
+
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const h3Raw = localStorage.getItem(`vsg_h3_data_${userId}`);
+      if (h3Raw) {
+        const h3 = JSON.parse(h3Raw);
+        if (h3.colors?.isConfirmed) {
+          setHasCustomPalette(true);
+          setBrandMeta({
+            companyName: h3.companyName,
+            font: h3.typography?.headingFont,
+            primary: h3.colors?.primary,
+            accent: h3.colors?.accent
+          });
+        }
+      }
+      const pref = localStorage.getItem(`vsg_custom_style_active_${userId}`);
+      setIsCustomStyleActive(pref === "true" || pref === null);
+    } catch (e) {}
+  }, [userId]);
+
+  const toggleCustomStyle = () => {
+    const next = !isCustomStyleActive;
+    setIsCustomStyleActive(next);
+    try {
+      localStorage.setItem(`vsg_custom_style_active_${userId}`, String(next));
+      window.dispatchEvent(new Event("vsg_brand_style_changed"));
+    } catch (e) {}
+  };
+
   const isH2Unlocked = h1Status === "completed";
 
   return (
-    <div className="min-h-screen bg-[var(--surface)] p-6">
-      <header className="max-w-4xl mx-auto flex justify-between items-center py-6 mb-8 border-b border-gray-200 dark:border-white/10">
-        <BrandLogo title="Dashboard" />
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-[var(--surface)] p-6 transition-colors duration-500">
+      <header className="max-w-4xl mx-auto flex flex-wrap justify-between items-center py-6 mb-8 border-b border-gray-200 dark:border-white/10 gap-4">
+        <BrandLogo title="Dashboard" userId={userId} />
+        <div className="flex items-center gap-3">
+          {hasCustomPalette && (
+            <button
+              type="button"
+              onClick={toggleCustomStyle}
+              title="Wissel tussen de standaard stijl van het boek en jouw eigen huisstijl"
+              className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs ${
+                isCustomStyleActive 
+                  ? "bg-gradient-to-r from-[var(--brand-primary-start)] to-[var(--brand-primary-end)] text-[var(--on-primary)] border-transparent font-black shadow-sm"
+                  : "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 opacity-80 hover:opacity-100"
+              }`}
+            >
+              <span>{isCustomStyleActive ? "👁️ Mijn stijl actief" : "👁️ Bekijk in mijn stijl"}</span>
+            </button>
+          )}
+
           <ThemeToggle />
-          <span className="text-sm font-medium opacity-80">
+          <span className="text-sm font-medium opacity-80 hidden sm:inline">
             {userEmail}
           </span>
           <button
@@ -130,6 +179,29 @@ export function DashboardClient({ userId, userEmail }: DashboardClientProps) {
           </button>
         </div>
       </header>
+
+      {/* Actieve huisstijl alert banner */}
+      {hasCustomPalette && isCustomStyleActive && (
+        <div className="max-w-4xl mx-auto mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm bg-[var(--section-bg)] border-[var(--brand-primary-start)]/30 animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-4 h-4 text-[#dfb25a] shrink-0" />
+            <div className="text-xs">
+              <span className="font-extrabold text-[var(--text)] block">
+                {brandMeta.companyName ? `${brandMeta.companyName} is live!` : "Jouw huisstijl is actief op het dashboard!"}
+              </span>
+              <span className="opacity-75">
+                Weergegeven in jouw merkkleuren ({brandMeta.primary} &amp; {brandMeta.accent}) en typografie ({brandMeta.font || "Montserrat"}).
+              </span>
+            </div>
+          </div>
+          <Link
+            href="/huisstijl"
+            className="text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-xl border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 shrink-0 transition-all"
+          >
+            Bekijk Brand Guide →
+          </Link>
+        </div>
+      )}
 
       <main className="max-w-4xl mx-auto space-y-8">
         
