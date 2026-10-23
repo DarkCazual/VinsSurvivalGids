@@ -15,6 +15,7 @@ interface DashboardClientProps {
 export function DashboardClient({ userId, userEmail }: DashboardClientProps) {
   const [h1Status, setH1Status] = useState<"not_started" | "in_progress" | "completed">("not_started");
   const [h2Status, setH2Status] = useState<"not_started" | "in_progress" | "completed">("not_started");
+  const [h3Status, setH3Status] = useState<"not_started" | "in_progress" | "completed">("not_started");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Laad voortgang per gebruiker
@@ -65,6 +66,23 @@ export function DashboardClient({ userId, userEmail }: DashboardClientProps) {
         }
       } else {
         setH2Status("not_started");
+      }
+
+      const h3Raw = localStorage.getItem(`vsg_h3_data_${userId}`);
+      if (h3Raw) {
+        const h3 = JSON.parse(h3Raw);
+        const hasLijst = Boolean(h3.lijst?.welTags?.length >= 1 && h3.lijst?.nietTags?.length >= 1);
+        const hasColors = Boolean(h3.colors?.isConfirmed);
+
+        if (h3.isCompleted || h3.isRevealed) {
+          setH3Status("completed");
+        } else if (hasLijst || hasColors || h3.logo?.selectedLogoType) {
+          setH3Status("in_progress");
+        } else {
+          setH3Status("not_started");
+        }
+      } else {
+        setH3Status("not_started");
       }
     } catch (e) {
       console.error("Fout bij laden van voortgang:", e);
@@ -209,19 +227,71 @@ export function DashboardClient({ userId, userEmail }: DashboardClientProps) {
             </div>
           )}
 
+          {/* Hoofdstuk 3 */}
+          {isH2Unlocked ? (
+            <div className="bg-gradient-to-br from-[var(--section-bg)] to-amber-950/20 p-6 rounded-2xl shadow-lg border-2 border-[#dfb25a]/50 relative overflow-hidden flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-[#dfb25a] uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#dfb25a] animate-pulse" />
+                    Hoofdstuk 3 • Visuele Identiteit
+                  </span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#dfb25a]/20 text-[#dfb25a] font-black border border-[#dfb25a]/40">
+                    {h3Status === "completed" ? "Voltooid ✓" : h3Status === "in_progress" ? "In uitvoering ⏳" : "Klaar om te starten 🚀"}
+                  </span>
+                </div>
+                <h2 className="font-black text-xl mb-1 text-[var(--text)]">Jouw LIJST, Logo &amp; Huisstijl</h2>
+                <p className="text-sm opacity-80 mb-6 leading-relaxed">
+                  Stel je logo-eisen vast, genereer 7 logo-concepten, bouw je kleurenpalet en transformeer het platform naar jouw stijl.
+                </p>
+              </div>
+
+              <Link
+                href="/h3"
+                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black px-4 py-2.5 rounded-xl font-black text-xs shadow-md hover:brightness-110 transition-all uppercase tracking-wider"
+              >
+                {h3Status === "completed" ? "Open Hoofdstuk 3 (Huisstijl) →" : "Start Hoofdstuk 3 (Logo & Stijl) →"}
+              </Link>
+            </div>
+          ) : (
+            <div className="bg-[var(--section-bg)] opacity-75 p-6 rounded-2xl shadow-sm border border-black/10 dark:border-white/10 relative overflow-hidden flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold opacity-60 uppercase tracking-wider flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5" /> Hoofdstuk 3 • Visuele Identiteit
+                  </span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-black/10 dark:bg-white/10 opacity-70 font-bold border border-black/10 dark:border-white/10">
+                    Vergrendeld 🔒
+                  </span>
+                </div>
+                <h2 className="font-bold text-xl mb-1 text-[var(--text)] opacity-80">Jouw LIJST, Logo &amp; Huisstijl</h2>
+                <p className="text-sm opacity-70 mb-6 leading-relaxed">
+                  Rond eerst Hoofdstuk 1 af om je visuele identiteit, logo-generator en kleurenpalet te ontgrendelen.
+                </p>
+              </div>
+
+              <Link
+                href="/h1"
+                className="inline-flex items-center justify-center gap-2 bg-[var(--surface)] border border-black/10 dark:border-white/10 px-4 py-2.5 rounded-xl font-medium text-xs opacity-80 hover:opacity-100 hover:border-[#dfb25a] transition-all"
+              >
+                Rond eerst Hoofdstuk 1 af om te ontgrendelen →
+              </Link>
+            </div>
+          )}
+
         </div>
 
         {/* Volgende fasen preview */}
-        <div className="grid gap-6 md:grid-cols-2 opacity-50">
-          <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/5 dark:border-white/5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Hoofdstuk 3</span>
-            <h3 className="font-bold text-sm text-[var(--text)]">De Visuele Identiteit</h3>
-            <p className="text-xs opacity-75 mt-0.5">Logo-generator, kleurenpalet &amp; typografie.</p>
-          </div>
-          <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/5 dark:border-white/5">
-            <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Hoofdstuk 4</span>
-            <h3 className="font-bold text-sm text-[var(--text)]">Schrijfstijl voor AI</h3>
-            <p className="text-xs opacity-75 mt-0.5">Brand-voice, tone of voice &amp; contentprompts.</p>
+        <div className="grid gap-6 md:grid-cols-1 opacity-60">
+          <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/5 dark:border-white/5 flex justify-between items-center">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Hoofdstuk 4</span>
+              <h3 className="font-bold text-sm text-[var(--text)]">Schrijfstijl voor AI</h3>
+              <p className="text-xs opacity-75 mt-0.5">Brand-voice, tone of voice &amp; contentprompts voor ChatGPT, Gemini en Claude.</p>
+            </div>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/5 font-bold border border-black/10 dark:border-white/10">
+              Binnenkort
+            </span>
           </div>
         </div>
 
