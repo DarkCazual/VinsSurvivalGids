@@ -131,12 +131,13 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
     { value: "zorg", label: "Zorg & Welzijn", icon: "🩺", desc: "Medisch, verpleging, maatschappelijk" },
     { value: "tech", label: "Tech / IT / Creatief", icon: "💻", desc: "Software, design, marketing" },
     { value: "kantoor", label: "Kantoor / Bedrijfsleven", icon: "🏢", desc: "Finance, HR, corporate" },
-    { value: "student", label: "Student", icon: "🎓", desc: "MBO, HBO of WO studie" },
+    { value: "student", label: "Scholier / Student", icon: "🎒", desc: "Middelbare school, MBO, HBO of WO" },
     { value: "werkzoekend", label: "Werkzoekend", icon: "🔄", desc: "Tussen banen, heroriëntatie" },
     { value: "gepensioneerd", label: "Gepensioneerd", icon: "🏖️", desc: "Vrije tijd, pensioen, rust" },
   ];
 
   const familyOptions: { value: FamilySituation; label: string; desc: string }[] = [
+    { value: "thuiswonend", label: "Thuiswonend (bij ouders/familie)", desc: "Kind, scholier of student, woont nog thuis" },
     { value: "single", label: "Alleenstaand", desc: "Beslist autonoom en snel" },
     { value: "samenwonend", label: "Samenwonend", desc: "Overlegt samen met partner" },
     { value: "jong_gezin", label: "Jong gezin met baby/peuters", desc: "Drukke levensfase, veiligheid & gemak" },
@@ -152,6 +153,9 @@ export function PersonaWizard({ initialPersona, onSave }: PersonaWizardProps) {
   ];
 
   const lifestyleTags = [
+    "Gamen & Gaming",
+    "Uitgaan & Feestjes",
+    "Vrienden & Chillen",
     "Klussen & Doe-het-zelf",
     "Gezin & Kinderen",
     "Sport & Gezondheid",

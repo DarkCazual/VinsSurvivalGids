@@ -54,7 +54,8 @@ export function PersonaPassport({ persona, onEdit }: PersonaPassportProps) {
     "zorg": "Zorg & Welzijn 🩺",
     "onderwijs": "Onderwijs & Wetenschap 📚",
     "politiek": "Politiek, Overheid & Advocatuur ⚖️",
-    "student": "Student (MBO / HBO / WO) 🎓",
+    "student": "Scholier / Student (Middelbare school, MBO, HBO, WO) 🎒",
+    "scholier": "Scholier / Student (Middelbare school, MBO, HBO, WO) 🎒",
     "werkzoekend": "Werkzoekend / Heroriëntatie 🔄",
     "gepensioneerd": "Gepensioneerd / Vrijgesteld 🏖️",
   };
@@ -66,6 +67,7 @@ export function PersonaPassport({ persona, onEdit }: PersonaPassportProps) {
   };
 
   const familyLabels: Record<string, string> = {
+    "thuiswonend": "Thuiswonend (bij ouders/familie)",
     "single": "Alleenstaand / Single",
     "samenwonend": "Samenwonend (zonder kinderen)",
     "jong_gezin": "Jong gezin (baby / jonge kinderen)",

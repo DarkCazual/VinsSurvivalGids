@@ -15,6 +15,7 @@ export type JobSector =
   | 'onderwijs'
   | 'politiek'
   | 'student'
+  | 'scholier'
   | 'werkzoekend'
   | 'gepensioneerd';
 
@@ -26,7 +27,8 @@ export type FamilySituation =
   | 'jong_gezin' 
   | 'tieners' 
   | 'spoed_ouders' 
-  | 'senior_alleen';
+  | 'senior_alleen'
+  | 'thuiswonend';
 
 export type Platform = 
   | 'linkedin' 

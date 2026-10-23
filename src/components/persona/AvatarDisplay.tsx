@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PersonaData } from "./types";
+import { AvatarHead, resolveHeadVariant } from "./AvatarHead";
 import { Sparkles, DollarSign, Zap, Target } from "lucide-react";
 
 interface AvatarDisplayProps {
@@ -10,47 +11,32 @@ interface AvatarDisplayProps {
   showHud?: boolean;
 }
 
+
+// De vectorkoppen (viewBox 448.68 x 531.57) schalen we in het 300x300 avatar-canvas
+// zodat de kin op y=190 valt en de nek netjes onder de kraag van de kleding verdwijnt.
+const HEAD_TRANSFORM = "translate(60.1 31.5) scale(0.42)";
+// Hoofddeksels zijn getekend voor het oude hoofd; schuif ze naar de nieuwe kop.
+const HAT_TRANSFORM = "translate(150 101) scale(1.08) translate(-150 -106)";
+const HEADPHONE_TRANSFORM = "translate(150 128) scale(1.06) translate(-150 -137)";
+const HAT_CLIP_Y: Partial<Record<string, number>> = { vakman: 100, hulpdiensten: 99, horeca: 98, student: 99, gepensioneerd: 98 };
+
 export function AvatarDisplay({ persona, className = "", showHud = true }: AvatarDisplayProps) {
   const { gender, ageGroup, incomeLevel, jobSector, coreMotivation } = persona;
 
-  // Kleurenpalet voor huidskleur
-  const skinTone = "#F9CBB2";
-  const skinShadow = "#E8A386";
-  const eyeColor = "#1F2937";
-  
-  // Haarkleur en stijl: 
-  // Voor heren: stijlvol warm kastanjebruin (zoals in referentiebeelden 2 & 3)
-  // Voor dames: rijk warm kastanjerood / auburn (zoals in referentiebeeld)
-  // Voor senioren (65+): stijlvol zilver/grijs
+  // Unieke id's per avatar-instantie (meerdere avatars op een pagina mogen geen clip-id's delen)
+  const uid = "av" + React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
+
+  // Vectorkop op basis van geslacht & leeftijd (bron: public/avatars/*.svg)
+  const headVariant = resolveHeadVariant(gender, ageGroup);
+  const wrinkleLevel = ageGroup === "65+" ? 2 : ageGroup === "41-64" ? 1 : 0;
   const isSenior = ageGroup === "65+";
-  const isMatureWoman = gender === "vrouw" && (ageGroup === "41-64" || ageGroup === "65+");
-  const isYoungWoman = gender === "vrouw" && !isMatureWoman;
+  const hasGlasses = isSenior || jobSector === "tech" || jobSector === "ondernemer" || jobSector === "onderwijs" || jobSector === "politiek";
+  const glassesColor = isSenior ? "#5B3A24" : "#C9973F";
 
-  const hairColor = isSenior 
-    ? "#E2E8F0" 
-    : gender === "man" 
-      ? "#784E2E" 
-      : "#BA5A46";
-  const hairHighlight = isSenior 
-    ? "#FFFFFF" 
-    : gender === "man" 
-      ? "#9C6E48" 
-      : "#FDE2D6";
-  const hairLowlight = isSenior 
-    ? "#94A3B8" 
-    : gender === "man" 
-      ? "#523118" 
-      : "#7A3324";
-  const eyebrowColor = isSenior 
-    ? "#64748B" 
-    : gender === "man" 
-      ? "#523118" 
-      : "#7A3324";
-  const beardColor = isSenior ? "#CBD5E1" : hairColor;
-
-  const hasWrinkles = ageGroup === "41-64" || ageGroup === "65+";
-  const hasGlasses = ageGroup === "65+";
-  const hasHat = jobSector === "vakman" || jobSector === "hulpdiensten" || jobSector === "horeca" || jobSector === "student" || jobSector === "gepensioneerd";
+  // Hoofddeksels: het haar wordt boven de rand weggeknipt zodat het niet door de pet heen steekt
+  const isHigherStudent = (jobSector === "student" || jobSector === "scholier") && ageGroup !== "12-18";
+  const hatClipY = jobSector && (jobSector !== "student" || isHigherStudent) ? HAT_CLIP_Y[jobSector] : undefined;
+  const hasHat = hatClipY !== undefined;
 
   // Kledingkleur en accessoires op basis van inkomen
   let clothingColor = "#4B5563"; // budget (grijze hoodie)
@@ -159,69 +145,29 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
                   <feDropShadow dx="0" dy="4" stdDeviation="5" floodColor="#000000" floodOpacity="0.4" />
                 </filter>
+                {hasHat && (
+                  <clipPath id={`${uid}-hat`}>
+                    <rect x="-50" y={hatClipY} width="400" height="400" />
+                  </clipPath>
+                )}
               </defs>
 
               {/* Achtergrond ring & spotlight */}
               <circle cx="150" cy="150" r="130" fill="url(#avatarSpotlight)" />
               <circle cx="150" cy="150" r="128" fill="none" stroke="#dfb25a" strokeOpacity="0.5" strokeWidth="2" strokeDasharray="6 4" />
 
-              {/* ===== ACHTERSTE HAARMASSA (VOOR JONGE VROUWEN: VALT ACHTER DE SCHOUDERS LANGS DE HALS) ===== */}
-              {isYoungWoman && (
-                <g id="backHairWomanLong">
-                  <path
-                    d="M 106 126 
-                       C 92 142, 74 168, 76 200 
-                       C 78 224, 72 245, 85 262 
-                       C 96 265, 110 255, 116 238 
-                       C 120 220, 116 195, 116 172 
-                       C 116 150, 114 135, 112 124 
-                       C 108 92, 116 68, 150 67 
-                       C 184 68, 192 92, 188 124 
-                       C 186 135, 184 150, 184 172 
-                       C 184 195, 180 220, 184 238 
-                       C 190 255, 204 265, 215 262 
-                       C 228 245, 222 224, 224 200 
-                       C 226 168, 208 142, 194 126 
-                       C 196 90, 180 67, 150 67 
-                       C 120 67, 104 90, 106 126 Z"
-                    fill={hairColor}
-                    stroke={hairLowlight}
-                    strokeWidth="1.2"
+              {/* ===== VECTORKOP: hoofd, nek & haar (jouw tekening) + gezicht & bril ===== */}
+              <g clipPath={hasHat ? `url(#${uid}-hat)` : undefined}>
+                <g transform={HEAD_TRANSFORM}>
+                  <AvatarHead
+                    variant={headVariant}
+                    wrinkleLevel={wrinkleLevel}
+                    showGlasses={hasGlasses}
+                    glassesColor={glassesColor}
+                    idPrefix={uid}
                   />
-                  {/* Zachte golflijnen in de lengte van het haar */}
-                  <path d="M 85 168 Q 80 205 82 240 Q 84 252 88 258" stroke={hairLowlight} strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
-                  <path d="M 96 180 Q 94 215 98 248" stroke={hairLowlight} strokeWidth="1.1" fill="none" opacity="0.4" strokeLinecap="round" />
-                  <path d="M 215 168 Q 220 205 218 240 Q 216 252 212 258" stroke={hairLowlight} strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
-                  <path d="M 204 180 Q 206 215 202 248" stroke={hairLowlight} strokeWidth="1.1" fill="none" opacity="0.4" strokeLinecap="round" />
                 </g>
-              )}
-
-              {/* ===== ACHTERSTE HAARMASSA VOOR KORTE BOB (41+ & 65+) ===== */}
-              {isMatureWoman && (
-                <g id="backHairWomanShort">
-                  <path
-                    d="M 96 116 C 92 138, 94 160, 98 178 C 114 180, 150 180, 150 180 C 150 180, 186 180, 202 178 C 206 160, 208 138, 204 116 C 198 82, 182 68, 150 68 C 118 68, 102 82, 96 116 Z"
-                    fill={hairColor}
-                    stroke={hairLowlight}
-                    strokeWidth="1.2"
-                  />
-                  <path d="M 96 130 Q 94 152 98 175" stroke={hairLowlight} strokeWidth="1.2" fill="none" opacity="0.5" strokeLinecap="round" />
-                  <path d="M 204 130 Q 206 152 202 175" stroke={hairLowlight} strokeWidth="1.2" fill="none" opacity="0.5" strokeLinecap="round" />
-                </g>
-              )}
-
-              {/* ===== HALS ===== */}
-              {gender === "vrouw" ? (
-                <g id="neckWoman">
-                  <rect x="137" y="168" width="26" height="38" rx="4" fill={skinShadow} />
-                  <path d="M 137 180 Q 150 193 163 180 L 163 206 L 137 206 Z" fill={skinTone} opacity="0.7" />
-                </g>
-              ) : (
-                <g id="neckMan">
-                  <rect x="135" y="168" width="30" height="38" rx="4" fill={skinShadow} />
-                  <path d="M 135 180 Q 150 194 165 180 L 165 206 L 135 206 Z" fill={skinTone} opacity="0.7" />
-                </g>
-              )}
+              </g>
 
               {/* ===== LICHAAM / SCHOUDERS / KLEDING ===== */}
               <g id="clothing" filter="url(#softShadow)">
@@ -370,8 +316,8 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                   </g>
                 )}
 
-                {/* 7. STUDENT: Eresjerp */}
-                {jobSector === "student" && (
+                {/* 7. STUDENT: Eresjerp (voor hoger onderwijs) */}
+                {isHigherStudent && (
                   <g id="academicSash">
                     <path d="M 104 212 L 80 270 L 96 274 L 116 220 Z" fill="#B45309" />
                     <path d="M 196 212 L 220 270 L 204 274 L 184 220 Z" fill="#B45309" />
@@ -381,323 +327,9 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 )}
               </g>
 
-              {/* ===== HOOFD & GEZICHT ===== */}
-              <g id="head">
-                {/* Vrouwelijke schedel is zachter en eleganter getaperd; mannelijke schedel heeft een stevigere kaak */}
-                {gender === "vrouw" ? (
-                  <path
-                    d="M 115 135 C 115 166, 127 182, 150 182 C 173 182, 185 166, 185 135 C 185 76, 115 76, 115 135 Z"
-                    fill={skinTone}
-                  />
-                ) : (
-                  <path
-                    d="M 112 135 C 112 172, 128 186, 150 186 C 172 186, 188 172, 188 135 C 188 75, 112 75, 112 135 Z"
-                    fill={skinTone}
-                  />
-                )}
-
-                {/* Oren */}
-                <circle cx={gender === "vrouw" ? "112" : "110"} cy="140" r="7" fill={skinTone} />
-                <path d={gender === "vrouw" ? "M 111 137 Q 113 140 111 143" : "M 109 137 Q 112 140 109 143"} stroke={skinShadow} strokeWidth="1.2" fill="none" />
-                <circle cx={gender === "vrouw" ? "188" : "190"} cy="140" r="7" fill={skinTone} />
-                <path d={gender === "vrouw" ? "M 189 137 Q 187 140 189 143" : "M 191 137 Q 188 140 191 143"} stroke={skinShadow} strokeWidth="1.2" fill="none" />
-
-                {gender === "vrouw" && incomeLevel === "hoog" && (
-                  <g>
-                    <circle cx="112" cy="147" r="3" fill="#FFFFFF" />
-                    <circle cx="188" cy="147" r="3" fill="#FFFFFF" />
-                  </g>
-                )}
-
-                {/* Ogen */}
-                <ellipse cx="134" cy="136" rx="5" ry="5.5" fill="#FFFFFF" />
-                <circle cx="134" cy="136" r="3.2" fill={eyeColor} />
-                <circle cx="135.5" cy="134.5" r="1.2" fill="#FFFFFF" />
-
-                <ellipse cx="166" cy="136" rx="5" ry="5.5" fill="#FFFFFF" />
-                <circle cx="166" cy="136" r="3.2" fill={eyeColor} />
-                <circle cx="167.5" cy="134.5" r="1.2" fill="#FFFFFF" />
-
-                {/* Minimalistische vrouwelijke wimpers */}
-                {gender === "vrouw" && (
-                  <g stroke="#1F2937" strokeWidth="1.6" strokeLinecap="round" fill="none">
-                    <path d="M 129 134 Q 134 131 139 134" />
-                    <path d="M 161 134 Q 166 131 171 134" />
-                  </g>
-                )}
-
-                {/* Wenkbrauwen */}
-                {gender === "man" ? (
-                  <g stroke={eyebrowColor} strokeWidth="3" strokeLinecap="round">
-                    <line x1="126" y1="126" x2="142" y2="125" />
-                    <line x1="158" y1="125" x2="174" y2="126" />
-                  </g>
-                ) : (
-                  <g stroke={eyebrowColor} strokeWidth="2.2" strokeLinecap="round">
-                    <path d="M 126 126 Q 134 121 143 125" fill="none" />
-                    <path d="M 157 125 Q 166 121 174 126" fill="none" />
-                  </g>
-                )}
-
-                {/* Neus */}
-                <path d="M 150 134 L 148 150 L 153 150" fill="none" stroke={skinShadow} strokeWidth="2" strokeLinecap="round" />
-
-                {/* Minimalistische mond & lippen voor de vrouw */}
-                {gender === "vrouw" ? (
-                  <path d="M 143 164 Q 150 169 157 164" fill="none" stroke="#D9536F" strokeWidth="2" strokeLinecap="round" />
-                ) : (
-                  <path d="M 142 163 Q 150 170 158 163" fill="none" stroke="#C27161" strokeWidth="2.5" strokeLinecap="round" />
-                )}
-
-                {/* Rimpeltjes bij 41+ en 65+ */}
-                {hasWrinkles && (
-                  <g stroke="#D48B6F" strokeWidth="1.2" strokeLinecap="round" opacity="0.75">
-                    <line x1="135" y1="110" x2="165" y2="110" />
-                    {ageGroup === "65+" && <line x1="138" y1="104" x2="162" y2="104" />}
-                    <line x1="122" y1="134" x2="127" y2="136" />
-                    <line x1="122" y1="138" x2="127" y2="138" />
-                    <line x1="178" y1="134" x2="173" y2="136" />
-                    <line x1="178" y1="138" x2="173" y2="138" />
-                    <path d="M 137 157 Q 138 164 141 169" fill="none" />
-                    <path d="M 163 157 Q 162 164 159 169" fill="none" />
-                  </g>
-                )}
-
-                {/* Stijlvolle getrimde herenbaard zoals in referentiebeeld 3 (Hairstyle 2) */}
-                {gender === "man" && (ageGroup === "26-40" || ageGroup === "41-64" || ageGroup === "65+") && (
-                  <g id="groomedBeard">
-                    {/* 1. Volle getrimde kaak- en wangbaard met nette wanguitsparingen en halslijn */}
-                    <path
-                      d="M 111 137 C 113 148, 120 158, 132 165 C 135 170, 140 174, 146 175 L 148 175 L 148 176 L 152 176 L 152 175 L 154 175 C 160 174, 165 170, 168 165 C 180 158, 187 148, 189 137 L 189 146 C 189 166, 178 182, 166 186 C 156 188, 144 188, 134 186 C 122 182, 111 166, 111 146 Z"
-                      fill={beardColor}
-                    />
-                    
-                    {/* 2. Sikje / Soul patch onder het midden van de onderlip */}
-                    <path
-                      d="M 148 166 L 152 166 L 151.5 176 L 148.5 176 Z"
-                      fill={beardColor}
-                    />
-
-                    {/* 3. Subtiele wanglijn en kin contouring voor professionele verzorgde look */}
-                    <path
-                      d="M 113 140 Q 120 154 131 163"
-                      stroke={hairLowlight}
-                      strokeWidth="1.2"
-                      fill="none"
-                      opacity="0.4"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 187 140 Q 180 154 169 163"
-                      stroke={hairLowlight}
-                      strokeWidth="1.2"
-                      fill="none"
-                      opacity="0.4"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M 136 184 Q 150 187 164 184"
-                      stroke={hairHighlight}
-                      strokeWidth="1.2"
-                      fill="none"
-                      opacity="0.4"
-                      strokeLinecap="round"
-                    />
-
-                    {/* 4. Snor strak getrimd boven de mond met boog over de cupidoboog */}
-                    <path
-                      d="M 136 164 C 137 157, 143 153, 148 153 C 149 153, 150 154.5, 150 154.5 C 150 154.5, 151 153, 152 153 C 157 153, 163 157, 164 164 C 161 161, 156 159, 150 159 C 144 159, 139 161, 136 164 Z"
-                      fill={beardColor}
-                    />
-                    {/* Middennaadje in snor */}
-                    <line x1="150" y1="154.5" x2="150" y2="159" stroke={hairLowlight} strokeWidth="1" opacity="0.6" />
-                  </g>
-                )}
-              </g>
-
-              {/* ===== HAAR VOORZIJDE (NATUURLIJKE VERHOUDINGEN VOLGENS REFERENTIEBEELDEN) ===== */}
-              <g id="hair">
-                {hasHat ? (
-                  /* ONDER HET HOOFDDEKSEL: Nette zijlokken / bakkebaarden */
-                  gender === "man" ? (
-                    <g id="underCapHairMan">
-                      {/* Nette getrimde bakkebaarden tot halverwege het oor */}
-                      <path d="M 111 112 L 115 112 L 115 137 L 111 137 Z" fill={hairColor} />
-                      <path d="M 185 112 L 189 112 L 189 137 L 185 137 Z" fill={hairColor} />
-                    </g>
-                  ) : isYoungWoman ? (
-                    <g id="underCapHairWomanLong">
-                      {/* Nette zijlokken die achter het oor vallen van onder het hoofddeksel */}
-                      <path d="M 108 112 L 112 112 L 112 135 L 108 135 Z" fill={hairColor} />
-                      <path d="M 188 112 L 192 112 L 192 135 L 188 135 Z" fill={hairColor} />
-                    </g>
-                  ) : (
-                    <g id="underCapHairWomanShort">
-                      {/* Vrouwelijke zijlokken die netjes langs de kaak vallen tot y:176 (korte bob) */}
-                      <path
-                        d="M 106 108 C 100 130, 102 154, 108 176 C 113 177, 116 172, 115 155 C 112 135, 114 120, 116 110 Z"
-                        fill={hairColor}
-                      />
-                      <path
-                        d="M 194 108 C 200 130, 198 154, 192 176 C 187 177, 184 172, 185 155 C 188 135, 186 120, 184 110 Z"
-                        fill={hairColor}
-                      />
-                      <path d="M 104 125 Q 102 148 107 170" stroke={hairLowlight} strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
-                      <path d="M 196 125 Q 198 148 193 170" stroke={hairLowlight} strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
-                    </g>
-                  )
-                ) : (
-                  /* VOLLEDIG KAPSEL (GEEN HOOFDDEKSEL) */
-                  gender === "man" ? (
-                    <g id="styledHairMan">
-                      {/* 1. Barbershop fade zijkanten bij de bakkebaarden */}
-                      <path
-                        d="M 111 137 L 115 137 L 115 122 L 111 126 Z"
-                        fill={hairLowlight}
-                        opacity="0.35"
-                      />
-                      <path
-                        d="M 185 137 L 189 137 L 189 126 L 185 122 Z"
-                        fill={hairLowlight}
-                        opacity="0.35"
-                      />
-
-                      {/* 2. Compacte, minimalistische haarmassa die natuurlijk aansluit op de schedel (top y:68 ipv torenhoog) */}
-                      <path
-                        d="M 111 135 L 115 135 C 115 124, 117 114, 124 107 C 132 103, 144 104, 154 106 C 166 108, 176 112, 181 116 C 183 120, 184 126, 185 135 L 189 135 C 193 124, 194 110, 191 96 C 188 82, 178 72, 166 69 C 156 67, 144 68, 134 69 C 122 71, 112 77, 107 86 C 103 94, 105 106, 107 116 C 109 123, 110 130, 111 135 Z"
-                        fill={hairColor}
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                      />
-
-                      {/* 3. Subtiele natuurlijke glans- en kamlijnen volgens referentiebeeld 2 & 3 */}
-                      <path
-                        d="M 124 74 Q 146 71 168 75"
-                        stroke={hairHighlight}
-                        strokeWidth="2.2"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.55"
-                      />
-                      <path
-                        d="M 120 83 Q 144 80 166 85"
-                        stroke={hairHighlight}
-                        strokeWidth="1.8"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.45"
-                      />
-                      <path
-                        d="M 128 94 Q 148 91 168 96"
-                        stroke={hairHighlight}
-                        strokeWidth="1.5"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.35"
-                      />
-
-                      {/* 4. Subtiele schaduwlijnen voor diepte */}
-                      <path
-                        d="M 122 78 Q 145 75 168 80"
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.4"
-                      />
-                      <path
-                        d="M 125 89 Q 147 86 166 91"
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.35"
-                      />
-                    </g>
-                  ) : isMatureWoman ? (
-                    <g id="styledHairWomanShort">
-                      {/* 1. Hoofdkap: natuurlijke minimalistische bob die de kaak omlijst en NOOIT over de kleding valt (stopt bij y:176) */}
-                      <path
-                        d="M 104 135 C 98 94, 114 68, 150 67 C 186 68, 202 94, 196 135 C 190 118, 182 104, 170 104 C 158 104, 153 94, 147 94 C 141 94, 136 104, 126 104 C 114 104, 108 118, 104 135 Z"
-                        fill={hairColor}
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                      />
-                      {/* 2. Zachte glansboog op de kruin */}
-                      <path
-                        d="M 125 73 Q 150 68 175 73"
-                        stroke={hairHighlight}
-                        strokeWidth="1.5"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.45"
-                      />
-                      {/* 3. Elegante zijlokken die langs de wangen vallen en strak stoppen bij de kaaklijn (y:176) */}
-                      <path
-                        d="M 112 104 C 106 122, 106 148, 110 176 C 113 177, 117 174, 116 160 C 115 138, 118 116, 124 104 Z"
-                        fill={hairColor}
-                        stroke={hairLowlight}
-                        strokeWidth="1"
-                      />
-                      <path
-                        d="M 188 104 C 194 122, 194 148, 190 176 C 187 177, 183 174, 184 160 C 185 138, 182 116, 176 104 Z"
-                        fill={hairColor}
-                        stroke={hairLowlight}
-                        strokeWidth="1"
-                      />
-                      {/* 4. Zachte middenscheiding */}
-                      <path
-                        d="M 126 104 C 134 95, 143 95, 147 95 C 151 95, 160 98, 170 104 C 160 100, 153 98, 147 98 C 141 98, 134 100, 126 104 Z"
-                        fill={hairColor}
-                        opacity="0.8"
-                      />
-                    </g>
-                  ) : (
-                    <g id="styledHairWomanLong">
-                      {/* VLOEIEND LANG GOLVEND HAAR MET ZIJSCHEIDING VOLGENS REFERENTIEBEELD */}
-
-                      {/* 1. Schedelkap met asymmetrische zijscheiding (scheiding op x:126, links van het midden) */}
-                      <path
-                        d="M 106 130 C 102 96, 112 68, 148 67 C 178 67, 196 88, 196 122 C 192 112, 182 108, 170 108 C 158 108, 150 94, 140 92 C 132 90, 126 84, 126 78 C 126 84, 120 92, 114 104 C 110 114, 108 122, 106 130 Z"
-                        fill={hairColor}
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                      />
-
-                      {/* 2. Diagonaal opzij vallende lok (Side-swept bangs over het voorhoofd, stopt netjes boven/achter het rechteroor) */}
-                      <path
-                        d="M 126 82 C 142 80, 170 88, 186 106 C 190 112, 190 120, 186 132 C 180 122, 170 114, 158 106 C 146 96, 134 92, 126 90 Z"
-                        fill={hairColor}
-                        stroke={hairLowlight}
-                        strokeWidth="1"
-                      />
-
-                      {/* 3. Subtiele glansboog op kruin (zoals in referentiebeeld) */}
-                      <path d="M 132 75 Q 148 70 164 74" stroke={hairHighlight} strokeWidth="1.6" strokeLinecap="round" fill="none" opacity="0.45" />
-
-                      {/* 4. Subtiele tonale kamlijnen over de schuine voorhoofdslok (zoals in het referentiebeeld) */}
-                      <path
-                        d="M 128 86 Q 150 98 174 116"
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.6"
-                      />
-                      <path
-                        d="M 136 80 Q 158 90 180 106"
-                        stroke={hairLowlight}
-                        strokeWidth="1.2"
-                        fill="none"
-                        strokeLinecap="round"
-                        opacity="0.5"
-                      />
-                    </g>
-                  )
-                )}
-              </g>
 
               {/* ===== HOOFDDEKSELS: HOOGWAARDIGE BEROEPSELEMENTEN ===== */}
+              <g transform={HAT_TRANSFORM}>
               
               {/* 1. VAKMAN BOUWHELM: 3D koepel, middenribbe, 3M reflexband & stootklep */}
               {jobSector === "vakman" && (
@@ -850,8 +482,8 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                 </g>
               )}
 
-              {/* 4. STUDENT: Afstudeerhoed (Mortarboard met kwast) */}
-              {jobSector === "student" && (
+              {/* 4. STUDENT: Afstudeerhoed (Mortarboard met kwast voor hoger onderwijs) */}
+              {isHigherStudent && (
                 <g id="graduationCap" filter="url(#softShadow)">
                   <path d="M 110 106 C 110 72, 190 72, 190 106 Z" fill="#1E293B" />
                   <polygon points="150,54 206,68 150,82 94,68" fill="#0F172A" stroke="#334155" strokeWidth="1.5" />
@@ -876,9 +508,11 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                   <circle cx="150" cy="70" r="3.2" fill="#44403C" />
                 </g>
               )}
+              </g>
 
               {/* 6. TECH: Professionele studio koptelefoon met cyan LED verlichting & microfoon */}
               {jobSector === "tech" && (
+                <g transform={HEADPHONE_TRANSFORM}>
                 <g id="bigHeadphones" filter="url(#softShadow)">
                   {/* Gevoerde hoofdband */}
                   <path d="M 106 135 C 100 58, 200 58, 194 135" stroke="#1E293B" strokeWidth="6" fill="none" strokeLinecap="round" />
@@ -893,18 +527,9 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
                   <path d="M 102 144 Q 106 162 124 164" stroke="#475569" strokeWidth="2" fill="none" strokeLinecap="round" />
                   <circle cx="125" cy="164" r="3" fill="#06B6D4" />
                 </g>
-              )}
-
-              {/* 7. BRIL (voor tech, ondernemer, onderwijs, politiek of 65+) */}
-              {(hasGlasses || jobSector === "tech" || jobSector === "ondernemer" || jobSector === "onderwijs" || jobSector === "politiek") && (
-                <g stroke="#DFB25A" strokeWidth="2.5" fill="none" opacity="0.95">
-                  <rect x="122" y="128" width="22" height="17" rx="4" />
-                  <rect x="156" y="128" width="22" height="17" rx="4" />
-                  <line x1="144" y1="135" x2="156" y2="135" />
-                  <line x1="122" y1="134" x2="110" y2="136" />
-                  <line x1="178" y1="134" x2="190" y2="136" />
                 </g>
               )}
+
 
               {/* Gouden Rolex/horloge bij hoog inkomen */}
               {incomeLevel === "hoog" && (
@@ -920,7 +545,7 @@ export function AvatarDisplay({ persona, className = "", showHud = true }: Avata
             {/* Beroep badge zwevend rechtsboven */}
             <div className="absolute top-2 right-2 bg-black/75 backdrop-blur-md border border-[#dfb25a]/60 text-[#dfb25a] px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
               <Sparkles className="w-3 h-3 text-[#dfb25a]" />
-              <span className="capitalize">{jobSector}</span>
+              <span className="capitalize">{jobSector === "student" || jobSector === "scholier" ? "Scholier / Student" : jobSector}</span>
             </div>
 
             {/* Prijs/Koopkracht badge linksonder */}
