@@ -5,10 +5,23 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PersonaKompas } from "@/components/h2/PersonaKompas";
 import { LogoLijst } from "@/components/h3/LogoLijst";
-import { H3Data, DEFAULT_H3_DATA, LogoLijstData } from "@/components/h3/types";
+import { LogoGenerator } from "@/components/h3/LogoGenerator";
+import { KleurenPalet } from "@/components/h3/KleurenPalet";
+import { TypografieMatcher } from "@/components/h3/TypografieMatcher";
+import { FotografiePatronen } from "@/components/h3/FotografiePatronen";
+import { HuisstijlDocument } from "@/components/h3/HuisstijlDocument";
+import { BrandRevealModal } from "@/components/h3/BrandRevealModal";
+import { 
+  H3Data, 
+  DEFAULT_H3_DATA, 
+  LogoLijstData,
+  LogoGeneratorData,
+  ColorPaletteData,
+  TypographyData,
+  BrandImageryData
+} from "@/components/h3/types";
 import { 
   ArrowLeft, 
-  ArrowRight, 
   Save, 
   Sparkles, 
   ListFilter, 
@@ -19,22 +32,27 @@ import {
   CheckCircle2, 
   Crown,
   Eye,
-  Layers
+  EyeOff,
+  Layers,
+  Check
 } from "lucide-react";
+
+export type H3Tab = "lijst" | "generator" | "kleuren" | "typografie" | "beeld" | "huisstijl";
 
 interface H3ClientProps {
   userId: string;
   userEmail: string;
+  initialTab?: H3Tab;
 }
 
-export type H3Tab = "lijst" | "generator" | "kleuren" | "typografie" | "beeld" | "huisstijl";
-
-export function H3Client({ userId, userEmail }: H3ClientProps) {
-  const [activeTab, setActiveTab] = useState<H3Tab>("lijst");
+export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientProps) {
+  const [activeTab, setActiveTab] = useState<H3Tab>(initialTab);
   const [h3Data, setH3Data] = useState<H3Data>(DEFAULT_H3_DATA);
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
+  const [useCustomStyle, setUseCustomStyle] = useState(false);
+  const [showRevealModal, setShowRevealModal] = useState(false);
 
-  // Laad data per gebruiker en haal eventueel de bedrijfsnaam uit H2
+  // Laad data per gebruiker en haal eventueel de bedrijfsnaam uit H2 / centrale brand state
   useEffect(() => {
     try {
       // 1. Haal bedrijfsnaam op uit centrale brand state of H2 data
@@ -46,6 +64,7 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
       if (saved) {
         const parsed = JSON.parse(saved);
         setH3Data({
+          ...DEFAULT_H3_DATA,
           ...parsed,
           companyName: parsed.companyName || storedBrandName,
         });
@@ -55,10 +74,46 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
           companyName: storedBrandName,
         });
       }
+
+      // Check of custom style actief was
+      const storedStylePref = localStorage.getItem(`vsg_custom_style_active_${userId}`);
+      if (storedStylePref === "true") {
+        setUseCustomStyle(true);
+      }
     } catch (e) {
       console.error("Fout bij laden van H3 data:", e);
     }
   }, [userId]);
+
+  // CSS Variabelen injectie bij "Bekijk in mijn stijl"
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+
+    if (useCustomStyle && h3Data.colors.isConfirmed) {
+      root.style.setProperty("--brand-primary-start", h3Data.colors.primary);
+      root.style.setProperty("--brand-primary-end", h3Data.colors.accent);
+      root.style.setProperty("--brand-dark", h3Data.colors.dark);
+      root.style.setProperty("--brand-light", h3Data.colors.light);
+      if (h3Data.typography.headingFont) {
+        root.style.setProperty("--font-heading", h3Data.typography.headingFont);
+      }
+      if (h3Data.typography.bodyFont) {
+        root.style.setProperty("--font-body", h3Data.typography.bodyFont);
+      }
+    } else {
+      root.style.removeProperty("--brand-primary-start");
+      root.style.removeProperty("--brand-primary-end");
+      root.style.removeProperty("--brand-dark");
+      root.style.removeProperty("--brand-light");
+      root.style.removeProperty("--font-heading");
+      root.style.removeProperty("--font-body");
+    }
+
+    try {
+      localStorage.setItem(`vsg_custom_style_active_${userId}`, String(useCustomStyle));
+    } catch (e) {}
+  }, [useCustomStyle, h3Data.colors, h3Data.typography, userId]);
 
   const handleSave = () => {
     try {
@@ -74,15 +129,64 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
     }
   };
 
+  // State update helpers met directe localStorage synchronisatie
   const updateLijst = (updatedLijst: LogoLijstData) => {
     setH3Data((prev) => {
-      const next = { ...prev, lijst: updatedLijst };
+      const next = { ...prev, lijst: updatedLijst, updatedAt: new Date().toISOString() };
       try {
         localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
       } catch (e) {}
       return next;
     });
   };
+
+  const updateLogo = (updatedLogo: LogoGeneratorData) => {
+    setH3Data((prev) => {
+      const next = { ...prev, logo: updatedLogo, updatedAt: new Date().toISOString() };
+      try {
+        localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const updateColors = (updatedColors: ColorPaletteData) => {
+    setH3Data((prev) => {
+      const next = { ...prev, colors: updatedColors, updatedAt: new Date().toISOString() };
+      try {
+        localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const updateTypography = (updatedTypography: TypographyData) => {
+    setH3Data((prev) => {
+      const next = { ...prev, typography: updatedTypography, updatedAt: new Date().toISOString() };
+      try {
+        localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const updateImagery = (updatedImagery: BrandImageryData) => {
+    setH3Data((prev) => {
+      const next = { ...prev, imagery: updatedImagery, updatedAt: new Date().toISOString() };
+      try {
+        localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  // Automatische check of alle stappen klaar zijn voor het onthulmoment
+  const isCoreReady = Boolean(
+    h3Data.companyName && 
+    h3Data.logo.selectedLogoType && 
+    h3Data.colors.isConfirmed && 
+    h3Data.typography.isConfirmed
+  );
 
   const navItems: { id: H3Tab; label: string; icon: React.ReactNode; isReady: boolean }[] = [
     { 
@@ -119,18 +223,42 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
       id: "huisstijl", 
       label: "6. Huisstijl & Reveal", 
       icon: <FileText className="w-4 h-4" />,
-      isReady: h3Data.isRevealed
+      isReady: h3Data.isRevealed || isCoreReady
     },
   ];
 
+  const handleRevealClose = () => {
+    setShowRevealModal(false);
+    setH3Data(prev => {
+      const next = { ...prev, isRevealed: true };
+      try {
+        localStorage.setItem(`vsg_h3_data_${userId}`, JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleRevealViewDocument = () => {
+    handleRevealClose();
+    setActiveTab("huisstijl");
+  };
+
   return (
-    <div className="min-h-screen bg-[var(--surface)] text-[var(--text)] pb-20">
+    <div className="min-h-screen bg-[var(--surface)] text-[var(--text)] pb-24 transition-colors duration-500">
       
       {/* Zwevend Persona Kompas aan de zijkant */}
       <PersonaKompas userId={userId} />
 
+      {/* Brand Reveal Onthulmoment Modal */}
+      <BrandRevealModal
+        isOpen={showRevealModal}
+        data={h3Data}
+        onClose={handleRevealClose}
+        onViewDocument={handleRevealViewDocument}
+      />
+
       {/* Top Header */}
-      <header className="border-b border-black/10 dark:border-white/10 bg-[var(--section-bg)]/80 backdrop-blur-md sticky top-0 z-30 px-4 py-3.5">
+      <header className="border-b border-black/10 dark:border-white/10 bg-[var(--section-bg)]/85 backdrop-blur-md sticky top-0 z-30 px-4 py-3.5 shadow-sm transition-colors">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Link
@@ -151,18 +279,37 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             {h3Data.companyName && (
-              <span className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#dfb25a]/15 text-[#dfb25a] text-xs font-black border border-[#dfb25a]/30">
+              <span className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dfb25a]/15 text-[#dfb25a] text-xs font-black border border-[#dfb25a]/30 shadow-xs">
                 <Crown className="w-3.5 h-3.5 text-[#dfb25a]" />
                 {h3Data.companyName}
               </span>
             )}
 
+            {/* "Bekijk in mijn stijl" / "Bekijk in basisstijl" toggle uit sectie 5.3 van de master spec */}
+            {h3Data.colors.isConfirmed && (
+              <button
+                type="button"
+                onClick={() => setUseCustomStyle(!useCustomStyle)}
+                title="Wissel tussen de standaard stijl en jouw eigen gekozen huisstijl"
+                className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs ${
+                  useCustomStyle 
+                    ? "bg-[#dfb25a] text-black border-[#dfb25a] font-black"
+                    : "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 opacity-80 hover:opacity-100"
+                }`}
+              >
+                {useCustomStyle ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                <span className="hidden lg:inline">
+                  {useCustomStyle ? "Mijn stijl actief" : "Bekijk in mijn stijl"}
+                </span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleSave}
-              className="px-3 py-1.5 rounded-xl bg-black/10 dark:bg-white/10 hover:bg-emerald-500/20 hover:text-emerald-500 border border-black/10 dark:border-white/10 text-xs font-bold transition-all flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-emerald-500/20 hover:text-emerald-500 border border-black/10 dark:border-white/10 text-xs font-bold transition-all flex items-center gap-1.5"
             >
               <Save className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Opslaan</span>
@@ -194,7 +341,7 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 relative ${
+                  className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 relative ${
                     isActive
                       ? "bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black shadow-md font-black"
                       : "hover:bg-black/5 dark:hover:bg-white/5 opacity-75 hover:opacity-100"
@@ -211,7 +358,7 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
           </div>
         </div>
 
-        {/* Actieve Tab Inhoud */}
+        {/* Stap 1: Jouw LIJST */}
         {activeTab === "lijst" && (
           <LogoLijst
             data={h3Data.lijst}
@@ -221,137 +368,71 @@ export function H3Client({ userId, userEmail }: H3ClientProps) {
           />
         )}
 
+        {/* Stap 2: Logo Concepten Generator (Zwart-wit) */}
         {activeTab === "generator" && (
-          <div className="bg-[var(--section-bg)] p-8 rounded-2xl border border-black/10 dark:border-white/10 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#dfb25a]/20 text-[#dfb25a] flex items-center justify-center mx-auto border border-[#dfb25a]/40">
-              <Layers className="w-7 h-7" />
-            </div>
-            <h2 className="text-xl font-black">Stap 2: Logo Concepten Generator (Zwart-wit)</h2>
-            <p className="text-xs opacity-75 max-w-lg mx-auto leading-relaxed">
-              Hier worden zometeen 7 archetypes gelijktijdig gegenereerd voor <strong>{h3Data.companyName || "jouw merk"}</strong> op basis van Jouw LIJST (WEL: {h3Data.lijst.welTags.join(", ") || "nog niet ingevuld"}).
-            </p>
-            <div className="pt-2 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab("lijst")}
-                className="px-4 py-2 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold"
-              >
-                ← Terug naar Jouw LIJST
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("kleuren")}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase"
-              >
-                Naar Kleurenpalet →
-              </button>
-            </div>
-          </div>
+          <LogoGenerator
+            data={h3Data.logo}
+            lijst={h3Data.lijst}
+            companyName={h3Data.companyName}
+            onChange={updateLogo}
+            onNext={() => setActiveTab("kleuren")}
+            onBack={() => setActiveTab("lijst")}
+          />
         )}
 
+        {/* Stap 3: Kleurenpalet & Harmonie-wiel */}
         {activeTab === "kleuren" && (
-          <div className="bg-[var(--section-bg)] p-8 rounded-2xl border border-black/10 dark:border-white/10 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center mx-auto border border-blue-500/40">
-              <Palette className="w-7 h-7" />
-            </div>
-            <h2 className="text-xl font-black">Stap 3: Kleurenpalet &amp; Harmonie-wiel</h2>
-            <p className="text-xs opacity-75 max-w-lg mx-auto leading-relaxed">
-              Het interactieve kleurenwiel (complementair, monochroom, analoog) en automatische berekening van de zwart- en wit-vervangers.
-            </p>
-            <div className="pt-2 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab("generator")}
-                className="px-4 py-2 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold"
-              >
-                ← Terug naar Logo
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("typografie")}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase"
-              >
-                Naar Typografie →
-              </button>
-            </div>
-          </div>
+          <KleurenPalet
+            data={h3Data.colors}
+            companyName={h3Data.companyName}
+            selectedLogoType={h3Data.logo.selectedLogoType}
+            onChange={updateColors}
+            onNext={() => setActiveTab("typografie")}
+            onBack={() => setActiveTab("generator")}
+          />
         )}
 
+        {/* Stap 4: Typografie Matcher */}
         {activeTab === "typografie" && (
-          <div className="bg-[var(--section-bg)] p-8 rounded-2xl border border-black/10 dark:border-white/10 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto border border-purple-500/40">
-              <Type className="w-7 h-7" />
-            </div>
-            <h2 className="text-xl font-black">Stap 4: Typografie Matcher</h2>
-            <p className="text-xs opacity-75 max-w-lg mx-auto leading-relaxed">
-              De live banner preview met jouw bedrijfsnaam en payoff in Serif, Sans-serif of Script.
-            </p>
-            <div className="pt-2 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab("kleuren")}
-                className="px-4 py-2 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold"
-              >
-                ← Terug naar Kleurenpalet
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("beeld")}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase"
-              >
-                Naar Fotografie →
-              </button>
-            </div>
-          </div>
+          <TypografieMatcher
+            data={h3Data.typography}
+            colors={h3Data.colors}
+            companyName={h3Data.companyName}
+            onChange={updateTypography}
+            onNext={() => {
+              // Als kleuren en logo er al zijn, toon het onthulmoment!
+              if (isCoreReady && !h3Data.isRevealed) {
+                setShowRevealModal(true);
+              }
+              setActiveTab("beeld");
+            }}
+            onBack={() => setActiveTab("kleuren")}
+          />
         )}
 
+        {/* Stap 5: Fotografie & Patronen */}
         {activeTab === "beeld" && (
-          <div className="bg-[var(--section-bg)] p-8 rounded-2xl border border-black/10 dark:border-white/10 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
-              <Camera className="w-7 h-7" />
-            </div>
-            <h2 className="text-xl font-black">Stap 5: Fotografie &amp; Patronen</h2>
-            <p className="text-xs opacity-75 max-w-lg mx-auto leading-relaxed">
-              Upload van sfeerfoto&apos;s, beeldregels (blikrichting, belichting) en iconenstijl (lijn vs. vlak).
-            </p>
-            <div className="pt-2 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab("typografie")}
-                className="px-4 py-2 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold"
-              >
-                ← Terug naar Typografie
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("huisstijl")}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase"
-              >
-                Naar Huisstijldocument →
-              </button>
-            </div>
-          </div>
+          <FotografiePatronen
+            data={h3Data.imagery}
+            onChange={updateImagery}
+            onNext={() => {
+              if (isCoreReady && !h3Data.isRevealed) {
+                setShowRevealModal(true);
+              }
+              setActiveTab("huisstijl");
+            }}
+            onBack={() => setActiveTab("typografie")}
+          />
         )}
 
+        {/* Stap 6: Huisstijldocument & De Brand Reveal */}
         {activeTab === "huisstijl" && (
-          <div className="bg-[var(--section-bg)] p-8 rounded-2xl border border-black/10 dark:border-white/10 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-[#dfb25a] flex items-center justify-center mx-auto border border-[#dfb25a]/40">
-              <Sparkles className="w-7 h-7" />
-            </div>
-            <h2 className="text-xl font-black">Stap 6: Het Huisstijldocument &amp; De Reveal</h2>
-            <p className="text-xs opacity-75 max-w-lg mx-auto leading-relaxed">
-              Het complete downloadbare merkpaspoort (PDF) en het onthulmoment waarop het hele platform jouw stijl overneemt!
-            </p>
-            <div className="pt-2 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab("beeld")}
-                className="px-4 py-2 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold"
-              >
-                ← Terug naar Fotografie
-              </button>
-            </div>
-          </div>
+          <HuisstijlDocument
+            data={h3Data}
+            userId={userId}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onTriggerReveal={() => setShowRevealModal(true)}
+          />
         )}
 
       </main>

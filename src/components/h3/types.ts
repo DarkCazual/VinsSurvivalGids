@@ -14,6 +14,8 @@ export type ColorHarmony =
   | 'triadisch'
   | 'tetradisch';
 
+export type H3Tab = 'lijst' | 'generator' | 'kleuren' | 'typografie' | 'beeld' | 'huisstijl';
+
 export interface LogoLijstData {
   welTags: string[];
   nietTags: string[];
