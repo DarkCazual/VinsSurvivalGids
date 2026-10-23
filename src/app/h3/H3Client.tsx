@@ -434,6 +434,8 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
           <HuisstijlDocument
             data={h3Data}
             userId={userId}
+            isCustomStyleActive={useCustomStyle}
+            onToggleCustomStyle={() => setUseCustomStyle(!useCustomStyle)}
             onNavigateTab={(tab) => setActiveTab(tab)}
             onTriggerReveal={() => setShowRevealModal(true)}
           />
