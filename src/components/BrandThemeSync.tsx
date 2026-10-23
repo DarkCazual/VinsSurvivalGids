@@ -1,55 +1,68 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { useTheme } from "next-themes";
 import { getBestTextColor, getContrastRatio } from "@/lib/color/colorUtils";
 
 export function BrandThemeSync() {
+  const { resolvedTheme } = useTheme();
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    const root = document.documentElement;
+
     const applyTheme = () => {
       try {
-        // Vind actieve H3 data door te zoeken naar vsg_h3_data_ keys in localStorage
         let activeH3: any = null;
-        let activeUserId: string | null = null;
-        let isStyleActive = false;
+        let activeUserId: string | null = localStorage.getItem("vsg_active_user_id");
 
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith("vsg_h3_data_")) {
-            const raw = localStorage.getItem(key);
-            if (raw) {
-              const parsed = JSON.parse(raw);
-              if (parsed.colors?.isConfirmed) {
-                activeH3 = parsed;
-                activeUserId = key.replace("vsg_h3_data_", "");
-                break;
+        if (activeUserId) {
+          const raw = localStorage.getItem(`vsg_h3_data_${activeUserId}`);
+          if (raw) {
+            try {
+              activeH3 = JSON.parse(raw);
+            } catch (e) {}
+          }
+        }
+
+        // Fallback: zoek eerste vsg_h3_data_ key als activeUserId nog niet gezet is
+        if (!activeH3) {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("vsg_h3_data_")) {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                try {
+                  const parsed = JSON.parse(raw);
+                  if (parsed.colors?.primary) {
+                    activeH3 = parsed;
+                    activeUserId = key.replace("vsg_h3_data_", "");
+                    break;
+                  }
+                } catch (e) {}
               }
             }
           }
         }
 
+        let isStyleActive = false;
         if (activeUserId) {
           const stylePref = localStorage.getItem(`vsg_custom_style_active_${activeUserId}`);
-          // Standaard actief zodra de gebruiker zijn kleuren heeft bevestigd of op 'Bekijk in mijn stijl' heeft geklikt
-          isStyleActive = stylePref === "true" || stylePref === null;
+          // Alleen actief als expliciet "true", of standaard op true als kleuren zijn bevestigd en nog niet eerder handmatig uitgezet
+          isStyleActive = stylePref === "true";
         }
 
-        const root = document.documentElement;
-
-        if (activeH3 && isStyleActive && activeH3.colors?.isConfirmed) {
+        if (activeH3 && isStyleActive && activeH3.colors?.primary) {
           const { primary, accent, dark, light } = activeH3.colors;
 
-          // Bereken de veiligste, WCAG-bewaakte tekstkleuren
+          // Bereken WCAG-veilige tekstkleuren
           const onPrimary = getBestTextColor(primary, dark, light).textColor;
           const onAccent = getBestTextColor(accent, dark, light).textColor;
-          const onDark = getBestTextColor(dark, dark, light).textColor;
-          const onLight = getBestTextColor(light, dark, light).textColor;
 
-          // Knoppen in de steunkleur die minder dan 3:1 contrast hebben met de achtergrond
           const accentButtonBorder = getContrastRatio(accent, light) < 3.0 ? `1.5px solid ${dark}` : "none";
 
-          // Injecteer CSS variabelen
+          // Injecteer primaire CSS variabelen
           root.style.setProperty("--brand-primary-start", primary);
           root.style.setProperty("--brand-primary-end", accent);
           root.style.setProperty("--brand-dark", dark);
@@ -58,16 +71,23 @@ export function BrandThemeSync() {
           root.style.setProperty("--on-accent", onAccent);
           root.style.setProperty("--accent-btn-border", accentButtonBorder);
 
-          // Pas oppervlakte- en tekstkleuren aan
-          const isDarkMode = root.classList.contains("dark");
+          // Detecteer Dark vs Light mode accuraat (zowel via class als via resolvedTheme)
+          const isDarkMode = root.classList.contains("dark") || resolvedTheme === "dark";
+
           if (!isDarkMode) {
-            root.style.setProperty("--surface", light);
-            root.style.setProperty("--text", dark);
-            root.style.setProperty("--section-bg", `${primary}0D`); // 5% subtiele tint van hoofdkleur
+            // LIGHT MODE:
+            // Achtergrond is de lichte merkkleur (off-white / cream), tekst is de donkere merkkleur
+            root.style.setProperty("--surface", light || "#FAF8F5");
+            root.style.setProperty("--text", dark || "#160C05");
+            // Secties/cards krijgen een zachte, dekkende tint zodat tekst en knoppen perfect leesbaar zijn
+            root.style.setProperty("--section-bg", `color-mix(in srgb, ${light || "#FAF8F5"} 92%, ${dark || "#160C05"} 8%)`);
           } else {
-            root.style.setProperty("--surface", dark);
-            root.style.setProperty("--text", light);
-            root.style.setProperty("--section-bg", `${light}12`); // subtiele lichte tint
+            // DARK MODE:
+            // Achtergrond is de donkere merkkleur (diep espresso/zwart), tekst is de lichte merkkleur
+            root.style.setProperty("--surface", dark || "#160C05");
+            root.style.setProperty("--text", light || "#FAF8F5");
+            // Secties/cards krijgen een subtiel lichtere tint van het donkere canvas
+            root.style.setProperty("--section-bg", `color-mix(in srgb, ${dark || "#160C05"} 84%, ${light || "#FAF8F5"} 16%)`);
           }
 
           // Typografie
@@ -78,7 +98,6 @@ export function BrandThemeSync() {
             root.style.setProperty("--font-body", `'${activeH3.typography.bodyFont}', sans-serif`);
           }
 
-          // Paginatitel
           if (activeH3.companyName) {
             document.title = `${activeH3.companyName} • Vin's Survival Gids`;
           }
@@ -106,15 +125,28 @@ export function BrandThemeSync() {
     // Voer direct uit
     applyTheme();
 
-    // Luister naar custom events en opslagwijzigingen
+    // 1. Luister naar aangepaste brand-stijlwijzigingen
     window.addEventListener("vsg_brand_style_changed", applyTheme);
     window.addEventListener("storage", applyTheme);
+
+    // 2. Observeer DOM class veranderingen op <html> (dark mode toggle van next-themes)
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.type === "attributes" && m.attributeName === "class") {
+          applyTheme();
+          break;
+        }
+      }
+    });
+
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
 
     return () => {
       window.removeEventListener("vsg_brand_style_changed", applyTheme);
       window.removeEventListener("storage", applyTheme);
+      observer.disconnect();
     };
-  }, []);
+  }, [resolvedTheme]);
 
   return null;
 }

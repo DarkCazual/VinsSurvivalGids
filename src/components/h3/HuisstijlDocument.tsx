@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { H3Data, H3Tab } from "./types";
 import { 
   Printer, 
@@ -51,6 +51,19 @@ export function HuisstijlDocument({
     if (typeof window === "undefined") return false;
     return localStorage.getItem(`vsg_custom_style_active_${userId}`) === "true";
   });
+
+  useEffect(() => {
+    const sync = () => {
+      const active = localStorage.getItem(`vsg_custom_style_active_${userId}`) === "true";
+      setLocalCustomActive(active);
+    };
+    window.addEventListener("vsg_brand_style_changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("vsg_brand_style_changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, [userId]);
 
   const isStyleLive = isCustomStyleActive !== undefined ? isCustomStyleActive : localCustomActive;
 

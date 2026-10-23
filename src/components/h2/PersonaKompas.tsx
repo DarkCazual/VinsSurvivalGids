@@ -47,9 +47,10 @@ export function PersonaKompas({ userId }: PersonaKompasProps) {
           setPersona(null);
         }
 
-        // H3 Merkkleuren laden
+        // H3 Merkkleuren laden (alleen actief als custom style aan staat)
+        const isCustomActive = localStorage.getItem(`vsg_custom_style_active_${userId}`) === "true";
         const h3Raw = localStorage.getItem(`vsg_h3_data_${userId}`);
-        if (h3Raw) {
+        if (h3Raw && isCustomActive) {
           const parsedH3 = JSON.parse(h3Raw);
           if (parsedH3.colors?.primary) {
             setBrandColors({
@@ -57,10 +58,13 @@ export function PersonaKompas({ userId }: PersonaKompasProps) {
               accent: parsedH3.colors.accent || parsedH3.colors.primary,
               dark: parsedH3.colors.dark || "#160c05"
             });
+            return;
           }
         }
+        setBrandColors(null);
       } catch (e) {
         console.error("Fout bij laden van persona/kleuren voor kompas:", e);
+        setBrandColors(null);
       }
     };
 
