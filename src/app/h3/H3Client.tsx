@@ -20,6 +20,7 @@ import {
   TypographyData,
   BrandImageryData
 } from "@/components/h3/types";
+import { getBestTextColor } from "@/lib/color/colorUtils";
 import { 
   ArrowLeft, 
   Save, 
@@ -49,7 +50,12 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
   const [activeTab, setActiveTab] = useState<H3Tab>(initialTab);
   const [h3Data, setH3Data] = useState<H3Data>(DEFAULT_H3_DATA);
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
-  const [useCustomStyle, setUseCustomStyle] = useState(false);
+  const [useCustomStyle, setUseCustomStyle] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const pref = localStorage.getItem(`vsg_custom_style_active_${userId}`);
+    if (initialTab === "huisstijl" && pref !== "false") return true;
+    return pref === "true";
+  });
   const [showRevealModal, setShowRevealModal] = useState(false);
 
   // Laad data per gebruiker en haal eventueel de bedrijfsnaam uit H2 / centrale brand state
@@ -68,22 +74,33 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
           ...parsed,
           companyName: parsed.companyName || storedBrandName,
         });
+
+        // Als de gebruiker al kleuren heeft of naar huisstijl gaat, zet stijl standaard actief
+        const storedStylePref = localStorage.getItem(`vsg_custom_style_active_${userId}`);
+        if (storedStylePref === "true" || (storedStylePref === null && (initialTab === "huisstijl" || parsed.colors?.isConfirmed))) {
+          setUseCustomStyle(true);
+        }
       } else {
         setH3Data({
           ...DEFAULT_H3_DATA,
           companyName: storedBrandName,
         });
       }
-
-      // Check of custom style actief was
-      const storedStylePref = localStorage.getItem(`vsg_custom_style_active_${userId}`);
-      if (storedStylePref === "true") {
-        setUseCustomStyle(true);
-      }
     } catch (e) {
       console.error("Fout bij laden van H3 data:", e);
     }
-  }, [userId]);
+  }, [userId, initialTab]);
+
+  // Zodra tab "huisstijl" geopend wordt, activeer automatisch de nieuwe huisstijlkleuren
+  useEffect(() => {
+    if (activeTab === "huisstijl" && h3Data.colors.isConfirmed) {
+      setUseCustomStyle(true);
+      try {
+        localStorage.setItem(`vsg_custom_style_active_${userId}`, "true");
+        window.dispatchEvent(new Event("vsg_brand_style_changed"));
+      } catch (e) {}
+    }
+  }, [activeTab, h3Data.colors.isConfirmed, userId]);
 
   // CSS Variabelen injectie bij "Bekijk in mijn stijl"
   useEffect(() => {
@@ -91,29 +108,58 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
     const root = document.documentElement;
 
     if (useCustomStyle && h3Data.colors.isConfirmed) {
-      root.style.setProperty("--brand-primary-start", h3Data.colors.primary);
-      root.style.setProperty("--brand-primary-end", h3Data.colors.accent);
-      root.style.setProperty("--brand-dark", h3Data.colors.dark);
-      root.style.setProperty("--brand-light", h3Data.colors.light);
+      const { primary, accent, dark, light } = h3Data.colors;
+      const onPrimary = getBestTextColor(primary, dark, light).textColor;
+      const onAccent = getBestTextColor(accent, dark, light).textColor;
+
+      root.style.setProperty("--brand-primary-start", primary);
+      root.style.setProperty("--brand-primary-end", accent);
+      root.style.setProperty("--brand-dark", dark);
+      root.style.setProperty("--brand-light", light);
+      root.style.setProperty("--on-primary", onPrimary);
+      root.style.setProperty("--on-accent", onAccent);
+
+      const isDarkMode = root.classList.contains("dark");
+      if (!isDarkMode) {
+        root.style.setProperty("--surface", light);
+        root.style.setProperty("--text", dark);
+        root.style.setProperty("--section-bg", `${primary}0D`);
+      } else {
+        root.style.setProperty("--surface", dark);
+        root.style.setProperty("--text", light);
+        root.style.setProperty("--section-bg", `${light}12`);
+      }
+
       if (h3Data.typography.headingFont) {
-        root.style.setProperty("--font-heading", h3Data.typography.headingFont);
+        root.style.setProperty("--font-heading", `'${h3Data.typography.headingFont}', sans-serif`);
       }
       if (h3Data.typography.bodyFont) {
-        root.style.setProperty("--font-body", h3Data.typography.bodyFont);
+        root.style.setProperty("--font-body", `'${h3Data.typography.bodyFont}', sans-serif`);
+      }
+
+      if (h3Data.companyName) {
+        document.title = `${h3Data.companyName} • Vin's Survival Gids`;
       }
     } else {
       root.style.removeProperty("--brand-primary-start");
       root.style.removeProperty("--brand-primary-end");
       root.style.removeProperty("--brand-dark");
       root.style.removeProperty("--brand-light");
+      root.style.removeProperty("--on-primary");
+      root.style.removeProperty("--on-accent");
+      root.style.removeProperty("--surface");
+      root.style.removeProperty("--text");
+      root.style.removeProperty("--section-bg");
       root.style.removeProperty("--font-heading");
       root.style.removeProperty("--font-body");
+      document.title = "Vin's Survival Gids";
     }
 
     try {
       localStorage.setItem(`vsg_custom_style_active_${userId}`, String(useCustomStyle));
+      window.dispatchEvent(new Event("vsg_brand_style_changed"));
     } catch (e) {}
-  }, [useCustomStyle, h3Data.colors, h3Data.typography, userId]);
+  }, [useCustomStyle, h3Data.colors, h3Data.typography, h3Data.companyName, userId]);
 
   const handleSave = () => {
     try {
@@ -242,6 +288,11 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
   };
 
   const handleRevealViewDocument = () => {
+    setUseCustomStyle(true);
+    try {
+      localStorage.setItem(`vsg_custom_style_active_${userId}`, "true");
+      window.dispatchEvent(new Event("vsg_brand_style_changed"));
+    } catch (e) {}
     handleRevealClose();
     setActiveTab("huisstijl");
   };
