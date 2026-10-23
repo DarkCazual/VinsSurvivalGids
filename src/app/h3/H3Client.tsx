@@ -324,7 +324,7 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
             </Link>
             <div className="h-4 w-px bg-black/10 dark:bg-white/10" />
             <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#dfb25a] block">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[var(--brand-primary-start,#dfb25a)] block">
                 Hoofdstuk 3
               </span>
               <h1 className="font-extrabold text-sm sm:text-base tracking-tight leading-none">
@@ -335,8 +335,8 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
 
           <div className="flex items-center gap-2 sm:gap-2.5">
             {h3Data.companyName && (
-              <span className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dfb25a]/15 text-[#dfb25a] text-xs font-black border border-[#dfb25a]/30 shadow-xs">
-                <Crown className="w-3.5 h-3.5 text-[#dfb25a]" />
+              <span className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-primary-start,#dfb25a)]/15 text-[var(--brand-primary-start,#dfb25a)] text-xs font-black border border-[var(--brand-primary-start,#dfb25a)]/30 shadow-xs">
+                <Crown className="w-3.5 h-3.5 text-[var(--brand-primary-start,#dfb25a)]" />
                 {h3Data.companyName}
               </span>
             )}
@@ -349,7 +349,7 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
                 title="Wissel tussen de standaard stijl en jouw eigen gekozen huisstijl"
                 className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs ${
                   useCustomStyle 
-                    ? "bg-[#dfb25a] text-black border-[#dfb25a] font-black"
+                    ? "bg-[var(--brand-primary-start,#dfb25a)] text-[var(--on-primary,#000000)] border-[var(--brand-primary-start,#dfb25a)] font-black"
                     : "bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 opacity-80 hover:opacity-100"
                 }`}
               >
@@ -397,7 +397,7 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 relative ${
                     isActive
-                      ? "bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black shadow-md font-black"
+                      ? "bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#f7d57f)] text-[var(--on-primary,#000000)] shadow-md font-black"
                       : "hover:bg-black/5 dark:hover:bg-white/5 opacity-75 hover:opacity-100"
                   }`}
                 >
@@ -422,12 +422,13 @@ export function H3Client({ userId, userEmail, initialTab = "lijst" }: H3ClientPr
           />
         )}
 
-        {/* Stap 2: Logo Concepten Generator (Zwart-wit) */}
+        {/* Stap 2: Logo Concepten Generator (Zwart-wit / Merkkleur) */}
         {activeTab === "generator" && (
           <LogoGenerator
             data={h3Data.logo}
             lijst={h3Data.lijst}
             companyName={h3Data.companyName}
+            colors={h3Data.colors}
             onChange={updateLogo}
             onNext={() => setActiveTab("kleuren")}
             onBack={() => setActiveTab("lijst")}

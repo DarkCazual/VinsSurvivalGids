@@ -162,11 +162,11 @@ DE 5 GOUDEN VRAGEN:
     <div className="space-y-6">
 
       {/* 1. PROMINENTE PLATFORM THEMA-SCHAKELAAR (PRINT:HIDDEN) */}
-      <div className="print:hidden p-5 sm:p-6 rounded-3xl border-2 transition-all shadow-md bg-[var(--section-bg)] border-[#dfb25a]/60">
+      <div className="print:hidden p-5 sm:p-6 rounded-3xl border-2 transition-all shadow-md bg-[var(--section-bg)] border-[var(--brand-primary-start,#dfb25a)]/60">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1.5 max-w-xl">
             <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-xl bg-[#dfb25a]/20 text-[#dfb25a] flex items-center justify-center font-bold">
+              <span className="w-8 h-8 rounded-xl bg-[var(--brand-primary-start,#dfb25a)]/20 text-[var(--brand-primary-start,#dfb25a)] flex items-center justify-center font-bold">
                 🎨
               </span>
               <h3 className="text-base sm:text-lg font-black text-[var(--text)] flex items-center gap-2">
@@ -199,7 +199,7 @@ DE 5 GOUDEN VRAGEN:
             className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 shrink-0 ${
               isStyleLive
                 ? "bg-black/10 dark:bg-white/10 hover:bg-black/20 text-[var(--text)] border border-black/15 dark:border-white/15"
-                : "bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] hover:brightness-110 text-black shadow-lg scale-105"
+                : "bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#f7d57f)] hover:brightness-110 text-[var(--on-primary,#000000)] shadow-lg scale-105"
             }`}
           >
             {isStyleLive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -211,7 +211,7 @@ DE 5 GOUDEN VRAGEN:
       {/* 2. ACTIEBALK BOVENAAN (PRINT:HIDDEN) */}
       <div className="print:hidden bg-[var(--section-bg)] p-4 rounded-2xl border border-black/10 dark:border-white/10 shadow-sm flex flex-wrap justify-between items-center gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#dfb25a]/20 text-[#dfb25a] flex items-center justify-center border border-[#dfb25a]/30">
+          <div className="w-10 h-10 rounded-xl bg-[var(--brand-primary-start,#dfb25a)]/20 text-[var(--brand-primary-start,#dfb25a)] flex items-center justify-center border border-[var(--brand-primary-start,#dfb25a)]/30">
             <FileCheck className="w-5 h-5" />
           </div>
           <div>
@@ -232,7 +232,7 @@ DE 5 GOUDEN VRAGEN:
             <button
               type="button"
               onClick={onTriggerReveal}
-              className="px-3.5 py-2 rounded-xl bg-[#dfb25a]/15 text-[#dfb25a] hover:bg-[#dfb25a]/25 border border-[#dfb25a]/30 text-xs font-black transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl bg-[var(--brand-primary-start,#dfb25a)]/15 text-[var(--brand-primary-start,#dfb25a)] hover:bg-[var(--brand-primary-start,#dfb25a)]/25 border border-[var(--brand-primary-start,#dfb25a)]/30 text-xs font-black transition-all flex items-center gap-1.5"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Toon Onthulmoment</span>
@@ -251,7 +251,7 @@ DE 5 GOUDEN VRAGEN:
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] hover:brightness-105 text-black text-xs font-black shadow-md transition-all flex items-center gap-2"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#f7d57f)] hover:brightness-105 text-[var(--on-primary,#000000)] text-xs font-black shadow-md transition-all flex items-center gap-2"
           >
             <Printer className="w-4 h-4" />
             <span>Download als PDF / Print</span>

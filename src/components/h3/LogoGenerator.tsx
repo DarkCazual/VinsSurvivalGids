@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { LogoGeneratorData, LogoLijstData, LogoType } from "./types";
+import { LogoGeneratorData, LogoLijstData, LogoType, ColorPaletteData } from "./types";
 import { 
   Sparkles, 
   RefreshCw, 
@@ -11,25 +11,68 @@ import {
   Layers, 
   CheckCircle2, 
   AlertTriangle,
-  X
+  X,
+  Palette,
+  Bot,
+  Loader2
 } from "lucide-react";
 
 interface LogoGeneratorProps {
   data: LogoGeneratorData;
   lijst: LogoLijstData;
+  colors?: ColorPaletteData;
   companyName: string;
   onChange: (updated: LogoGeneratorData) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
+const LOGO_DESCRIPTIONS: Record<LogoType, { title: string; subtitle: string; example: string }> = {
+  beeldmerk: {
+    title: "Beeldmerk (Pictorial Mark)",
+    subtitle: "Puur één herkenbaar icoon of symbool zonder tekst.",
+    example: "Zoals de Apple-appel of de Twitter/X-vogel."
+  },
+  lettermerk: {
+    title: "Lettermerk (Monogram)",
+    subtitle: "Alleen de initialen in een krachtige typografische stijl.",
+    example: "Zoals IBM, NASA, H&M of Louis Vuitton."
+  },
+  woordmerk: {
+    title: "Woordmerk (Wordmark)",
+    subtitle: "De volledige bedrijfsnaam in een uniek ontworpen lettertype.",
+    example: "Zoals Google, Coca-Cola of Sony."
+  },
+  combinatiemerk: {
+    title: "Combinatiemerk (Combination Mark)",
+    subtitle: "Een beeldmerk en woordmerk harmonieus gecombineerd.",
+    example: "Zoals Lacoste, Adidas of Burger King (meest gekozen type)."
+  },
+  embleem: {
+    title: "Embleem (Emblem / Seal)",
+    subtitle: "De naam en het icoon omsloten in een schild, zegel of badge.",
+    example: "Zoals Starbucks, Harley-Davidson of Porsche."
+  },
+  abstract: {
+    title: "Abstract Merk (Abstract Mark)",
+    subtitle: "Een geometrische vorm die emotie en sfeer oproept.",
+    example: "Zoals Nike (de swoosh), Pepsi of Airbnb."
+  },
+  mascotte: {
+    title: "Mascotte Logo (Mascot)",
+    subtitle: "Een getekend karakter dat het merk persoonlijkheid geeft.",
+    example: "Zoals Michelin Man, KFC (Colonel) of Duolingo."
+  }
+};
+
 export function LogoGenerator({ 
   data, 
   lijst, 
+  colors,
   companyName, 
   onChange, 
-  onNext,
-  onBack
+  onNext, 
+  onBack 
 }: LogoGeneratorProps) {
   const [name, setName] = useState(companyName || "Café De Beer");
   const [subtitle, setSubtitle] = useState(data.subtitle || "Koffie & Ambacht");
@@ -39,7 +82,18 @@ export function LogoGenerator({
     "CDB"
   );
   const [zoomType, setZoomType] = useState<LogoType | null>(null);
-  const [seed, setSeed] = useState(1);
+  const [colorMode, setColorMode] = useState<"brand" | "bw">("brand");
+  const [aiInsights, setAiInsights] = useState<Partial<Record<LogoType, string>>>({});
+  const [loadingAi, setLoadingAi] = useState<LogoType | null>(null);
+
+  // Kleurenpalet bepaling:
+  // Als gebruiker al kleuren heeft in Stap 3: gebruik die!
+  // Anders: standaard in de warme, stijlvolle Vin's Survival Gids huiskleuren (#dfb25a en #1a0f08)
+  const isBrand = colorMode === "brand";
+  const primaryColor = isBrand ? (colors?.isConfirmed ? colors.primary : "#dfb25a") : "#000000";
+  const accentColor = isBrand ? (colors?.isConfirmed ? colors.accent : "#a16e38") : "#000000";
+  const darkColor = isBrand ? (colors?.isConfirmed ? colors.dark : "#1a0f08") : "#000000";
+  const lightColor = isBrand ? (colors?.isConfirmed ? colors.light : "#fdf9f1") : "#ffffff";
 
   const handleSelect = (type: LogoType) => {
     onChange({
@@ -50,384 +104,577 @@ export function LogoGenerator({
     });
   };
 
-  const regenerate = () => {
-    setSeed(s => s + 1);
+  const handleGenerateAiInsight = async (type: LogoType) => {
+    setLoadingAi(type);
+    try {
+      const res = await fetch("/api/logo/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          subtitle,
+          logoType: type,
+          welTags: lijst.welTags,
+          nietTags: lijst.nietTags,
+          sfeerWoorden: lijst.sfeerWoorden
+        })
+      });
+      const result = await res.json();
+      if (result.aiConcept) {
+        setAiInsights(prev => ({ ...prev, [type]: result.aiConcept }));
+      }
+    } catch (e) {
+      console.error("Fout bij genereren AI advies:", e);
+    } finally {
+      setLoadingAi(null);
+    }
   };
 
-  // Helper om SVG logo per type te renderen (scherpe pure zwart-wit vector graphics)
+  // Helper om SVG logo per archetype te renderen
   const renderLogoPreview = (type: LogoType, isLarge: boolean = false) => {
-    const primaryIcon = lijst.welTags[0]?.toLowerCase() || "ambacht";
-    const size = isLarge ? 300 : 160;
+    const primaryTag = lijst.welTags[0]?.toLowerCase() || "ambacht";
 
     switch (type) {
       case "beeldmerk":
         return (
-          <svg viewBox="0 0 200 200" className="w-full h-full p-4" fill="currentColor">
-            {primaryIcon.includes("beer") ? (
-              <g transform="translate(100, 100) scale(0.8)">
-                <path d="M -50 -10 C -50 -40, -20 -60, 0 -60 C 20 -60, 50 -40, 50 -10 C 50 30, 25 60, 0 60 C -25 60, -50 30, -50 -10 Z" />
-                <circle cx="-35" cy="-45" r="14" />
-                <circle cx="35" cy="-45" r="14" />
-                <path d="M -20 -5 L -5 5 L -10 15 L 0 8 L 10 15 L 5 5 L 20 -5 Z" fill="#FFFFFF" />
-              </g>
-            ) : primaryIcon.includes("berg") ? (
-              <g transform="translate(100, 100)">
-                <polygon points="0,-50 -60,40 60,40" />
-                <polygon points="0,-50 -20,-10 0,0 20,-10" fill="#FFFFFF" />
-                <polygon points="25,-20 -10,40 60,40" opacity="0.6" />
-              </g>
-            ) : (
-              <g transform="translate(100, 100)">
-                <path d="M 0 -60 L 50 -20 L 50 35 C 50 65, 0 80, 0 80 C 0 80, -50 65, -50 35 L -50 -20 Z" />
-                <path d="M 0 -45 L 35 -15 L 35 30 C 35 50, 0 65, 0 65 C 0 65, -35 50, -35 30 L -35 -15 Z" fill="#FFFFFF" />
-                <polygon points="0,-25 15,20 0,10 -15,20" />
-              </g>
-            )}
+          <svg viewBox="0 0 200 200" className="w-full h-full p-4">
+            <defs>
+              <linearGradient id={`grad-bm-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={primaryColor} />
+                <stop offset="100%" stopColor={accentColor} />
+              </linearGradient>
+            </defs>
+            <g transform="translate(100, 100)">
+              {/* Heraldiek schild met facetten */}
+              <path 
+                d="M 0 -70 L 60 -35 L 60 25 C 60 65, 0 85, 0 85 C 0 85, -60 65, -60 25 L -60 -35 Z" 
+                fill={`url(#grad-bm-${type})`}
+              />
+              <path 
+                d="M 0 -60 L 50 -28 L 50 20 C 50 55, 0 72, 0 72 C 0 72, -50 55, -50 20 L -50 -28 Z" 
+                fill={isBrand ? darkColor : "#FFFFFF"}
+              />
+              {/* Icoon binnenin afgestemd op sfeer */}
+              {primaryTag.includes("beer") ? (
+                <g transform="scale(0.85)">
+                  <circle cx="-16" cy="-24" r="8" fill={primaryColor} />
+                  <circle cx="16" cy="-24" r="8" fill={primaryColor} />
+                  <path d="M -25 -10 C -25 -25, 25 -25, 25 -10 C 25 15, 0 25, 0 25 C 0 25, -25 15, -25 -10 Z" fill={primaryColor} />
+                  <ellipse cx="0" cy="5" rx="10" ry="7" fill={isBrand ? darkColor : "#FFFFFF"} />
+                  <circle cx="0" cy="2" r="3" fill={primaryColor} />
+                </g>
+              ) : (
+                <g>
+                  <polygon points="0,-35 22,-5 12,25 -12,25 -22,-5" fill={primaryColor} />
+                  <polygon points="0,-20 12,-2 6,15 -6,15 -12,-2" fill={isBrand ? darkColor : "#FFFFFF"} />
+                  <circle cx="0" cy="-2" r="3" fill={primaryColor} />
+                </g>
+              )}
+            </g>
           </svg>
         );
 
       case "lettermerk":
         return (
-          <svg viewBox="0 0 200 200" className="w-full h-full p-4 flex items-center justify-center">
-            <rect x="25" y="25" width="150" height="150" fill="none" stroke="currentColor" strokeWidth="8" rx="20" />
+          <svg viewBox="0 0 200 200" className="w-full h-full p-4">
+            <defs>
+              <linearGradient id={`grad-lm-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={primaryColor} />
+                <stop offset="100%" stopColor={accentColor} />
+              </linearGradient>
+            </defs>
+            {/* Dubbel luxe achthoekig kader */}
+            <polygon 
+              points="60,20 140,20 180,60 180,140 140,180 60,180 20,140 20,60" 
+              fill="none" 
+              stroke={`url(#grad-lm-${type})`} 
+              strokeWidth="4" 
+            />
+            <polygon 
+              points="64,28 136,28 172,64 172,136 136,172 64,172 28,136 28,64" 
+              fill="none" 
+              stroke={primaryColor} 
+              strokeWidth="1.5" 
+              opacity="0.6"
+            />
             <text
               x="100"
               y="118"
               fontSize={initials.length > 2 ? "44" : "56"}
-              fontFamily="system-ui, sans-serif"
+              fontFamily="'Cinzel', 'Playfair Display', Georgia, serif"
               fontWeight="900"
-              letterSpacing="2"
+              letterSpacing="3"
               textAnchor="middle"
-              fill="currentColor"
+              fill={primaryColor}
             >
               {initials}
             </text>
-            <line x1="50" y1="140" x2="150" y2="140" stroke="currentColor" strokeWidth="4" />
+            <circle cx="100" cy="45" r="2.5" fill={accentColor} />
+            <circle cx="100" cy="155" r="2.5" fill={accentColor} />
           </svg>
         );
 
       case "woordmerk":
         return (
-          <svg viewBox="0 0 240 160" className="w-full h-full p-3 flex items-center justify-center">
+          <svg viewBox="0 0 240 160" className="w-full h-full p-3">
+            <defs>
+              <linearGradient id={`grad-wm-${type}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={primaryColor} />
+                <stop offset="50%" stopColor={accentColor} />
+                <stop offset="100%" stopColor={primaryColor} />
+              </linearGradient>
+            </defs>
+            {/* Woordmerk met decoratieve hairlines */}
+            <line x1="30" y1="52" x2="210" y2="52" stroke={primaryColor} strokeWidth="1.5" opacity="0.4" />
+            <polygon points="120,49 123,52 120,55 117,52" fill={accentColor} />
+            
             <text
               x="120"
               y="85"
-              fontSize={name.length > 14 ? "20" : name.length > 10 ? "24" : "30"}
-              fontFamily="Georgia, serif"
+              fontSize={name.length > 15 ? "19" : name.length > 11 ? "23" : "28"}
+              fontFamily="'Cinzel', 'Montserrat', Georgia, serif"
               fontWeight="900"
-              letterSpacing="2.5"
+              letterSpacing="3"
               textAnchor="middle"
-              fill="currentColor"
+              fill={primaryColor}
             >
               {name.toUpperCase()}
             </text>
-            <line x1="40" y1="102" x2="200" y2="102" stroke="currentColor" strokeWidth="2.5" />
+
+            <line x1="30" y1="102" x2="210" y2="102" stroke={primaryColor} strokeWidth="1.5" opacity="0.4" />
+            <polygon points="120,99 123,102 120,105 117,102" fill={accentColor} />
+
             <text
               x="120"
-              y="120"
-              fontSize="9"
-              fontFamily="system-ui, sans-serif"
+              y="122"
+              fontSize="8.5"
+              fontFamily="'Montserrat', system-ui, sans-serif"
               fontWeight="700"
-              letterSpacing="6"
+              letterSpacing="5"
               textAnchor="middle"
-              fill="currentColor"
+              fill={accentColor}
             >
-              EST. 2026
+              {subtitle ? subtitle.toUpperCase() : "ORIGINAL QUALITY"}
             </text>
           </svg>
         );
 
       case "combinatiemerk":
         return (
-          <svg viewBox="0 0 220 180" className="w-full h-full p-3 flex flex-col items-center justify-center">
-            {/* Icoon boven */}
-            <g transform="translate(110, 50)">
-              <circle cx="0" cy="0" r="28" />
-              <polygon points="-12,-10 12,-10 0,16" fill="#FFFFFF" />
+          <svg viewBox="0 0 220 180" className="w-full h-full p-3">
+            <g transform="translate(110, 48)">
+              {/* Kroon / Crest icoon */}
+              <circle cx="0" cy="0" r="28" fill="none" stroke={primaryColor} strokeWidth="2.5" />
+              <polygon points="0,-16 12,0 8,14 -8,14 -12,0" fill={primaryColor} />
+              <circle cx="-16" cy="-4" r="2" fill={accentColor} />
+              <circle cx="16" cy="-4" r="2" fill={accentColor} />
             </g>
-            {/* Naam onder */}
             <text
               x="110"
-              y="120"
-              fontSize={name.length > 14 ? "17" : "21"}
-              fontFamily="system-ui, sans-serif"
+              y="114"
+              fontSize={name.length > 14 ? "18" : name.length > 10 ? "21" : "25"}
+              fontFamily="'Montserrat', Georgia, sans-serif"
               fontWeight="900"
-              letterSpacing="1.5"
+              letterSpacing="2.5"
               textAnchor="middle"
-              fill="currentColor"
+              fill={primaryColor}
             >
               {name.toUpperCase()}
             </text>
-            {subtitle && (
-              <text
-                x="110"
-                y="142"
-                fontSize="9"
-                fontFamily="system-ui, sans-serif"
-                fontWeight="600"
-                letterSpacing="3"
-                textAnchor="middle"
-                opacity="0.8"
-                fill="currentColor"
-              >
-                {subtitle.toUpperCase()}
-              </text>
-            )}
+            <rect x="55" y="126" width="110" height="1" fill={accentColor} opacity="0.5" />
+            <text
+              x="110"
+              y="142"
+              fontSize="8"
+              fontFamily="system-ui, sans-serif"
+              fontWeight="800"
+              letterSpacing="3.5"
+              textAnchor="middle"
+              fill={accentColor}
+            >
+              {subtitle.toUpperCase()}
+            </text>
           </svg>
         );
 
       case "embleem":
         return (
-          <svg viewBox="0 0 200 200" className="w-full h-full p-3">
-            <circle cx="100" cy="100" r="85" fill="none" stroke="currentColor" strokeWidth="6" />
-            <circle cx="100" cy="100" r="77" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 3" />
-            <circle cx="100" cy="100" r="52" fill="none" stroke="currentColor" strokeWidth="3" />
-            {/* Sterretjes */}
-            <polygon points="100,58 103,66 111,66 104,71 107,79 100,74 93,79 96,71 89,66 97,66" fill="currentColor" />
-            <text
-              x="100"
-              y="108"
-              fontSize={name.length > 12 ? "14" : "18"}
-              fontFamily="system-ui, sans-serif"
-              fontWeight="900"
-              letterSpacing="1"
-              textAnchor="middle"
-              fill="currentColor"
-            >
-              {name}
-            </text>
-            <text
-              x="100"
-              y="126"
-              fontSize="7.5"
-              fontFamily="system-ui, sans-serif"
-              fontWeight="800"
-              letterSpacing="3"
-              textAnchor="middle"
-              opacity="0.8"
-              fill="currentColor"
-            >
-              ORIGINAL BRAND
-            </text>
+          <svg viewBox="0 0 200 200" className="w-full h-full p-2">
+            <g transform="translate(100, 100)">
+              {/* Vintage circulaire zegel badge */}
+              <circle cx="0" cy="0" r="76" fill="none" stroke={primaryColor} strokeWidth="3" />
+              <circle cx="0" cy="0" r="70" fill="none" stroke={accentColor} strokeWidth="1" strokeDasharray="3 3" />
+              <circle cx="0" cy="0" r="64" fill="none" stroke={primaryColor} strokeWidth="1.5" />
+
+              {/* Binnenste cirkel */}
+              <circle cx="0" cy="0" r="42" fill={primaryColor} opacity="0.12" />
+
+              <text
+                x="0"
+                y="-48"
+                fontSize="8"
+                fontFamily="'Montserrat', sans-serif"
+                fontWeight="800"
+                letterSpacing="4"
+                textAnchor="middle"
+                fill={primaryColor}
+              >
+                ★ AUTHENTIC ★
+              </text>
+
+              <text
+                x="0"
+                y="5"
+                fontSize={name.length > 14 ? "14" : name.length > 10 ? "17" : "20"}
+                fontFamily="'Cinzel', Georgia, serif"
+                fontWeight="900"
+                letterSpacing="1.5"
+                textAnchor="middle"
+                fill={primaryColor}
+              >
+                {name.length > 14 ? name.substring(0, 13) + "." : name.toUpperCase()}
+              </text>
+
+              <line x1="-30" y1="14" x2="30" y2="14" stroke={accentColor} strokeWidth="1.5" />
+
+              <text
+                x="0"
+                y="27"
+                fontSize="7.5"
+                fontFamily="'Montserrat', sans-serif"
+                fontWeight="700"
+                letterSpacing="2.5"
+                textAnchor="middle"
+                fill={accentColor}
+              >
+                EST. 2026
+              </text>
+
+              <text
+                x="0"
+                y="54"
+                fontSize="7"
+                fontFamily="'Montserrat', sans-serif"
+                fontWeight="800"
+                letterSpacing="3"
+                textAnchor="middle"
+                fill={primaryColor}
+              >
+                {subtitle ? subtitle.substring(0, 16).toUpperCase() : "QUALITY FIRST"}
+              </text>
+            </g>
           </svg>
         );
 
       case "abstract":
         return (
-          <svg viewBox="0 0 200 200" className="w-full h-full p-4 flex items-center justify-center">
+          <svg viewBox="0 0 200 200" className="w-full h-full p-4">
+            <defs>
+              <linearGradient id={`grad-ab-${type}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={primaryColor} />
+                <stop offset="100%" stopColor={accentColor} />
+              </linearGradient>
+            </defs>
             <g transform="translate(100, 100)">
-              <path d="M 0 -55 C 35 -55, 60 -25, 45 15 C 30 55, -30 65, -45 25 C -60 -15, -35 -55, 0 -55 Z" fill="none" stroke="currentColor" strokeWidth="12" strokeLinecap="round" />
-              <circle cx="0" cy="0" r="16" />
-              <line x1="-30" y1="40" x2="45" y2="-40" stroke="currentColor" strokeWidth="5" />
+              {/* Dynamische gouden spiraal facetten */}
+              <polygon points="0,-60 52,-30 0,0" fill={`url(#grad-ab-${type})`} />
+              <polygon points="52,-30 52,30 0,0" fill={primaryColor} opacity="0.8" />
+              <polygon points="52,30 0,60 0,0" fill={accentColor} />
+              <polygon points="0,60 -52,30 0,0" fill={`url(#grad-ab-${type})`} opacity="0.9" />
+              <polygon points="-52,30 -52,-30 0,0" fill={primaryColor} opacity="0.7" />
+              <polygon points="-52,-30 0,-60 0,0" fill={accentColor} opacity="0.85" />
+              <circle cx="0" cy="0" r="10" fill={isBrand ? darkColor : "#FFFFFF"} />
             </g>
           </svg>
         );
 
       case "mascotte":
         return (
-          <svg viewBox="0 0 200 200" className="w-full h-full p-3 flex flex-col items-center">
-            <g transform="translate(100, 75)">
-              {/* Vriendelijke mascotte kop */}
-              <circle cx="0" cy="0" r="42" fill="currentColor" />
-              <circle cx="-16" cy="-6" r="6" fill="#FFFFFF" />
-              <circle cx="16" cy="-6" r="6" fill="#FFFFFF" />
-              <circle cx="-15" cy="-6" r="3" />
-              <circle cx="17" cy="-6" r="3" />
-              <path d="M -16 14 Q 0 28 16 14" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" fill="none" />
-              {/* Oortjes / petje */}
-              <polygon points="-24,-38 0,-60 24,-38" fill="currentColor" />
+          <svg viewBox="0 0 200 200" className="w-full h-full p-3">
+            <g transform="translate(100, 85)">
+              {/* Mascotte hoofd / badge */}
+              <circle cx="0" cy="0" r="44" fill={primaryColor} opacity="0.15" />
+              <circle cx="0" cy="0" r="40" fill="none" stroke={primaryColor} strokeWidth="3" />
+              {/* Oren */}
+              <circle cx="-28" cy="-30" r="14" fill={primaryColor} />
+              <circle cx="-28" cy="-30" r="7" fill={isBrand ? darkColor : "#FFFFFF"} />
+              <circle cx="28" cy="-30" r="14" fill={primaryColor} />
+              <circle cx="28" cy="-30" r="7" fill={isBrand ? darkColor : "#FFFFFF"} />
+              {/* Gezicht */}
+              <circle cx="-14" cy="-8" r="4.5" fill={primaryColor} />
+              <circle cx="14" cy="-8" r="4.5" fill={primaryColor} />
+              <ellipse cx="0" cy="10" rx="14" ry="10" fill={primaryColor} />
+              <ellipse cx="0" cy="6" rx="6" ry="4" fill={isBrand ? darkColor : "#FFFFFF"} />
+              <path d="M -8 14 Q 0 22 8 14" fill="none" stroke={isBrand ? darkColor : "#FFFFFF"} strokeWidth="2.5" />
             </g>
             <text
               x="100"
               y="155"
-              fontSize={name.length > 12 ? "16" : "20"}
-              fontFamily="system-ui, sans-serif"
+              fontSize={name.length > 13 ? "15" : "18"}
+              fontFamily="'Montserrat', sans-serif"
               fontWeight="900"
-              letterSpacing="1"
+              letterSpacing="2"
               textAnchor="middle"
-              fill="currentColor"
+              fill={primaryColor}
             >
-              {name}
+              {name.toUpperCase()}
             </text>
           </svg>
         );
-
-      default:
-        return null;
     }
   };
 
-  const logotypes: { type: LogoType; label: string; desc: string }[] = [
-    { type: "beeldmerk", label: "1. Beeldmerk", desc: "Puur symbool of icoon" },
-    { type: "lettermerk", label: "2. Lettermerk", desc: "Monogram / Initialen" },
-    { type: "woordmerk", label: "3. Woordmerk", desc: "Strakke typografische naam" },
-    { type: "combinatiemerk", label: "4. Combinatiemerk", desc: "Icoon + naam + ondertitel" },
-    { type: "embleem", label: "5. Embleem", desc: "Klassiek schild of zegel" },
-    { type: "abstract", label: "6. Abstract merk", desc: "Geometrisch & conceptueel" },
-    { type: "mascotte", label: "7. Mascotte", desc: "Sympathiek karakter-logo" },
+  const types: LogoType[] = [
+    "beeldmerk",
+    "lettermerk",
+    "woordmerk",
+    "combinatiemerk",
+    "embleem",
+    "abstract",
+    "mascotte"
   ];
 
   return (
     <div className="space-y-8 animate-fadeIn">
       
-      {/* Intro en Instellingen */}
-      <div className="bg-[var(--section-bg)] p-6 rounded-2xl border border-black/5 dark:border-white/10 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Header & Uitleg */}
+      <div className="bg-gradient-to-r from-[#2a170b] to-[#160b06] border-2 border-[var(--brand-primary-start,#dfb25a)]/40 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#dfb25a] block mb-1">
+            <span className="text-xs font-bold uppercase tracking-wider text-[var(--brand-primary-start,#dfb25a)] block mb-1">
               Stap 2 • Hoofdstuk 3: De Visuele Identiteit
             </span>
-            <h1 className="text-2xl font-black text-[var(--text)] tracking-tight">
-              Logo Concepten: 7 Archetypes in Zwart-Wit
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+              De 7 Logo Archetypes
             </h1>
-            <p className="text-xs opacity-75 mt-0.5">
-              Gebaseerd op Jouw LIJST (WEL: {lijst.welTags.join(", ") || "geen"}). Kies het logo-archetype dat het beste bij jouw merk past.
+            <p className="text-white/80 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+              Ontdek welk type logo het beste bij jouw merk past. Je kunt hieronder wisselen tussen de 
+              <strong> merkkleuren</strong> en de klassieke <strong>zwart-wit weergave</strong>.
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={regenerate}
-            className="px-4 py-2 rounded-xl bg-black/10 dark:bg-white/10 hover:bg-[#dfb25a]/20 hover:text-[#dfb25a] text-xs font-bold transition-all flex items-center gap-1.5"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Nieuwe variaties
-          </button>
-        </div>
-
-        {/* Input velden voor naam, ondertitel en initialen */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <div>
-            <label className="text-[11px] font-bold opacity-75 block mb-1">Bedrijfsnaam:</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-black/15 dark:border-white/15 bg-[var(--surface)] text-sm font-bold focus:border-[#dfb25a] outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-[11px] font-bold opacity-75 block mb-1">Ondertitel / Payoff (optioneel):</label>
-            <input
-              type="text"
-              value={subtitle}
-              onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="Bv. Koffie & Ambacht"
-              className="w-full px-3 py-2 rounded-xl border border-black/15 dark:border-white/15 bg-[var(--surface)] text-sm focus:border-[#dfb25a] outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-[11px] font-bold opacity-75 block mb-1">Initialen voor Lettermerk:</label>
-            <input
-              type="text"
-              maxLength={4}
-              value={initials}
-              onChange={(e) => setInitials(e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 rounded-xl border border-black/15 dark:border-white/15 bg-[var(--surface)] text-sm font-mono font-bold tracking-widest focus:border-[#dfb25a] outline-none"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Vaste Disclaimer uit het boek (Niet wegklikbaar) */}
-      <div className="p-4 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex gap-3 items-start leading-relaxed shadow-sm">
-        <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-        <div>
-          <strong className="font-bold block mb-0.5">Let op: dit zijn visuele concepten om je richting te bepalen, geen eindlogo.</strong>
-          Dit helpt je ontdekken welk type logo écht bij je past. AI maakt pixels, geen vectorbestanden, en letters kloppen niet altijd 100%. Laat je definitieve logo straks altijd uitwerken door een professional en eis altijd een vectorbestand (.svg, .ai of .eps).
-        </div>
-      </div>
-
-      {/* Raster van de 7 logotypes in zwart-wit */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {logotypes.map((lt) => {
-          const isSelected = data.selectedLogoType === lt.type;
-          return (
-            <div
-              key={lt.type}
-              className={`rounded-2xl border-2 transition-all p-4 flex flex-col justify-between bg-[var(--section-bg)] relative overflow-hidden group shadow-sm ${
-                isSelected 
-                  ? "border-[#dfb25a] ring-2 ring-[#dfb25a]/40 bg-[#dfb25a]/5" 
-                  : "border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30"
+          {/* Kleurmodus Schakelaar */}
+          <div className="flex items-center gap-2 p-1.5 rounded-xl bg-black/40 border border-white/10 shrink-0">
+            <button
+              type="button"
+              onClick={() => setColorMode("brand")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                colorMode === "brand"
+                  ? "bg-[var(--brand-primary-start,#dfb25a)] text-black font-black shadow-sm"
+                  : "text-white/70 hover:text-white"
               }`}
             >
-              {isSelected && (
-                <div className="absolute top-3 right-3 bg-[#dfb25a] text-black px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md z-10">
-                  <Check className="w-3 h-3" /> Gekozen type
+              <Palette className="w-3.5 h-3.5" />
+              <span>{colors?.isConfirmed ? "Mijn Merkkleuren" : "Vin's Goud Stijl"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setColorMode("bw")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                colorMode === "bw"
+                  ? "bg-white text-black font-black shadow-sm"
+                  : "text-white/70 hover:text-white"
+              }`}
+            >
+              <span>Zwart-wit</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Vaste Boek Waarschuwing */}
+      <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/40 text-xs text-[var(--text)] flex items-start gap-3 leading-relaxed">
+        <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <div>
+          <strong className="block font-bold text-amber-500 uppercase tracking-wide text-[11px]">
+            Belangrijke regel uit het boek:
+          </strong>
+          <p className="opacity-90 mt-0.5">
+            Dit zijn conceptuele voorbeelden om te ontdekken welk archetype bij jouw merkfilosofie past. 
+            Laat je definitieve logo altijd uitwerken door een professional en <strong>eis altijd een vectorbestand (.svg, .ai of .eps)</strong>.
+          </p>
+        </div>
+      </div>
+
+      {/* Invoervelden voor Bedrijfsnaam en Ondertitel */}
+      <div className="bg-[var(--section-bg)] p-5 rounded-2xl border border-black/10 dark:border-white/10 shadow-sm grid sm:grid-cols-3 gap-4">
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-[var(--text)] block mb-1">
+            Bedrijfsnaam op het logo:
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full bg-[var(--surface)] border border-black/15 dark:border-white/20 p-2.5 rounded-xl font-bold text-sm focus:outline-none focus:border-[var(--brand-primary-start,#dfb25a)] text-[var(--text)]"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-[var(--text)] block mb-1">
+            Ondertitel / Payoff (optioneel):
+          </label>
+          <input
+            type="text"
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            className="w-full bg-[var(--surface)] border border-black/15 dark:border-white/20 p-2.5 rounded-xl font-medium text-sm focus:outline-none focus:border-[var(--brand-primary-start,#dfb25a)] text-[var(--text)]"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-[var(--text)] block mb-1">
+            Initialen (voor Lettermerk):
+          </label>
+          <input
+            type="text"
+            maxLength={4}
+            value={initials}
+            onChange={(e) => setInitials(e.target.value.toUpperCase())}
+            className="w-full bg-[var(--surface)] border border-black/15 dark:border-white/20 p-2.5 rounded-xl font-bold text-sm uppercase tracking-widest focus:outline-none focus:border-[var(--brand-primary-start,#dfb25a)] text-[var(--text)]"
+          />
+        </div>
+      </div>
+
+      {/* Grid met de 7 Archetype Kaarten */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {types.map((type) => {
+          const info = LOGO_DESCRIPTIONS[type];
+          const isSelected = data.selectedLogoType === type;
+          const aiInsight = aiInsights[type];
+          const isAiLoading = loadingAi === type;
+
+          return (
+            <div
+              key={type}
+              className={`rounded-2xl border-2 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-md ${
+                isSelected
+                  ? "border-[var(--brand-primary-start,#dfb25a)] ring-2 ring-[var(--brand-primary-start,#dfb25a)]/30 bg-[var(--surface)]"
+                  : "border-black/10 dark:border-white/10 bg-[var(--surface)] hover:border-black/30 dark:hover:border-white/30"
+              }`}
+            >
+              {/* Type Titel & Subtitle */}
+              <div className="p-4 border-b border-black/5 dark:border-white/5 space-y-1">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-extrabold text-sm text-[var(--text)] tracking-tight">
+                    {info.title.split("(")[0]}
+                  </h3>
+                  {isSelected && (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500 font-black text-[10px] flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Gekozen
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] opacity-70 leading-snug line-clamp-2">
+                  {info.subtitle}
+                </p>
+              </div>
+
+              {/* Logo Preview Canvas */}
+              <div 
+                className="aspect-square flex items-center justify-center p-4 transition-colors"
+                style={{ backgroundColor: colorMode === "brand" ? (colors?.isConfirmed ? colors.light : "#fdf9f1") : "#ffffff" }}
+              >
+                {renderLogoPreview(type)}
+              </div>
+
+              {/* AI Advies box indien opgevraagd */}
+              {aiInsight && (
+                <div className="p-3 bg-[var(--brand-primary-start,#dfb25a)]/10 border-t border-[var(--brand-primary-start,#dfb25a)]/20 text-[11px] text-[var(--text)] space-y-1">
+                  <div className="font-bold flex items-center gap-1 text-[10px] uppercase text-[var(--brand-primary-start,#dfb25a)]">
+                    <Bot className="w-3.5 h-3.5" /> AI Design Advies:
+                  </div>
+                  <p className="opacity-90 leading-relaxed italic">{aiInsight}</p>
                 </div>
               )}
 
-              {/* Header van de kaart */}
-              <div className="mb-3">
-                <span className="font-black text-xs text-[var(--text)] block">{lt.label}</span>
-                <span className="text-[11px] opacity-70 block">{lt.desc}</span>
-              </div>
+              {/* Knoppenbalk onderaan kaart */}
+              <div className="p-3 border-t border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex flex-col gap-2">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setZoomType(type)}
+                    className="flex-1 py-1.5 px-2 rounded-lg bg-[var(--surface)] border border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 text-[11px] font-bold text-[var(--text)] flex items-center justify-center gap-1 transition"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                    <span>Vergroten</span>
+                  </button>
 
-              {/* Wit canvas met het Zwart-wit logo */}
-              <div className="w-full aspect-square bg-white text-black rounded-xl border border-black/15 shadow-inner flex items-center justify-center relative overflow-hidden my-2">
-                {renderLogoPreview(lt.type)}
-                
-                {/* Vergroten knop */}
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateAiInsight(type)}
+                    disabled={isAiLoading}
+                    title="Vraag Gemini AI om designadvies voor dit archetype"
+                    className="py-1.5 px-2 rounded-lg bg-[var(--surface)] border border-black/10 dark:border-white/10 hover:border-[var(--brand-primary-start,#dfb25a)] text-[11px] font-bold text-[var(--brand-primary-start,#dfb25a)] flex items-center justify-center gap-1 transition"
+                  >
+                    {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    <span>AI Advies</span>
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setZoomType(lt.type)}
-                  className="absolute bottom-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                  title="Vergroten"
-                >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Kies knop */}
-              <div className="pt-3">
-                <button
-                  type="button"
-                  onClick={() => handleSelect(lt.type)}
-                  className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  onClick={() => handleSelect(type)}
+                  className={`w-full py-2 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm ${
                     isSelected
-                      ? "bg-[#dfb25a] text-black font-black"
-                      : "bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 text-[var(--text)]"
+                      ? "bg-emerald-500 text-white"
+                      : "bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#a16e38)] text-[var(--on-primary,#000000)] hover:brightness-105"
                   }`}
                 >
-                  {isSelected ? (
-                    <>
-                      <Check className="w-4 h-4" /> Dit type is geselecteerd
-                    </>
-                  ) : (
-                    "Kies dit type"
-                  )}
+                  {isSelected ? "Gekozen Type ✓" : "Dit type kies ik"}
                 </button>
               </div>
+
             </div>
           );
         })}
       </div>
 
-      {/* Vergroot Modal */}
+      {/* Zoom Modal */}
       {zoomType && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white text-black p-6 rounded-2xl max-w-lg w-full relative shadow-2xl animate-scaleUp">
-            <button
-              type="button"
-              onClick={() => setZoomType(null)}
-              className="absolute top-4 right-4 p-1 rounded-full bg-black/10 hover:bg-black/20 text-black"
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-lg bg-[var(--surface)] rounded-3xl border border-black/15 dark:border-white/20 p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-black/10 dark:border-white/10 pb-3">
+              <div>
+                <h3 className="font-black text-lg text-[var(--text)]">
+                  {LOGO_DESCRIPTIONS[zoomType].title}
+                </h3>
+                <p className="text-xs opacity-75">{LOGO_DESCRIPTIONS[zoomType].example}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setZoomType(null)}
+                className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 text-[var(--text)]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div 
+              className="h-72 rounded-2xl flex items-center justify-center p-6 border border-black/10 shadow-inner"
+              style={{ backgroundColor: colorMode === "brand" ? (colors?.isConfirmed ? colors.light : "#fdf9f1") : "#ffffff" }}
             >
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="font-black text-lg mb-1 capitalize">Voorbeeld: {zoomType}</h3>
-            <p className="text-xs opacity-70 mb-4">Puur zwart op wit vector weergave.</p>
-            <div className="w-full aspect-square border border-black/15 rounded-xl flex items-center justify-center p-6 bg-white">
               {renderLogoPreview(zoomType, true)}
             </div>
-            <div className="mt-4 flex justify-end gap-2">
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setZoomType(null)}
+                className="px-4 py-2 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold text-[var(--text)]"
+              >
+                Sluiten
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   handleSelect(zoomType);
                   setZoomType(null);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-[#dfb25a] text-black font-black text-xs uppercase"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#a16e38)] text-[var(--on-primary,#000000)] text-xs font-black uppercase tracking-wider shadow-md"
               >
-                Kies dit logo &amp; Sluiten
+                Dit Type Kiezen
               </button>
             </div>
           </div>
@@ -439,7 +686,7 @@ export function LogoGenerator({
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-2.5 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold"
+          className="px-5 py-2.5 rounded-xl border border-black/15 dark:border-white/15 text-xs font-bold text-[var(--text)]"
         >
           ← Terug naar Jouw LIJST
         </button>
@@ -448,9 +695,13 @@ export function LogoGenerator({
           type="button"
           onClick={onNext}
           disabled={!data.selectedLogoType}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          className={`w-full sm:w-auto px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg ${
+            data.selectedLogoType
+              ? "bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#a16e38)] text-[var(--on-primary,#000000)] hover:brightness-110"
+              : "bg-black/10 dark:bg-white/10 opacity-50 cursor-not-allowed text-[var(--text)]"
+          }`}
         >
-          <span>Naar Stap 3: Kleurenpalet &amp; Harmonie-wiel</span>
+          <span>Naar Stap 3: Kleurenpalet</span>
           <span>→</span>
         </button>
       </div>

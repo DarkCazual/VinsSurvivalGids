@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=Caveat:wght@700&family=Cinzel:wght@700;900&family=Dancing+Script:wght@700&family=DM+Serif+Display&family=Lora:ital,wght@0,600;1,600&family=Montserrat:wght@800;900&family=Oswald:wght@700&family=Pacifico&family=Permanent+Marker&family=Playfair+Display:ital,wght@0,700;1,700&family=Space+Grotesk:wght@700&family=Work+Sans:wght@700&family=Zilla+Slab:wght@700&display=swap');
 
 @theme {
   --color-brand-start: var(--brand-primary-start);

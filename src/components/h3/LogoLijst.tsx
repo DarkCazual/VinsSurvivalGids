@@ -499,9 +499,9 @@ export function LogoLijst({ data, companyName, onChange, onNext }: LogoLijstProp
           type="button"
           onClick={onNext}
           disabled={!isComplete}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#f7d57f)] text-[var(--on-primary,#000000)] font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
         >
-          <span>Naar Stap 2: Logo Generator (Zwart-wit)</span>
+          <span>Naar Stap 2: Logo Generator</span>
           <span>→</span>
         </button>
       </div>

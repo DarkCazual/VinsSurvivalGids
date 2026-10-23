@@ -156,7 +156,11 @@ export function BrandRevealModal({
           <button
             type="button"
             onClick={onViewDocument}
-            className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] hover:brightness-105 text-black font-black text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 group"
+            style={{
+              background: `linear-gradient(135deg, ${primary}, ${accent})`,
+              color: "#000000"
+            }}
+            className="px-6 py-3.5 rounded-2xl hover:brightness-110 font-black text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 group"
           >
             <span>Bekijk je Huisstijldocument</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

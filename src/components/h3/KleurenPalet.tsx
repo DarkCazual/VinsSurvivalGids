@@ -738,7 +738,7 @@ export function KleurenPalet({
         <button
           type="button"
           onClick={confirmPalette}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#f7d57f)] text-[var(--on-primary,#000000)] font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg transition-all flex items-center justify-center gap-2"
         >
           <span>Bevestig Palet &amp; Naar Stap 4: Typografie</span>
           <span>→</span>

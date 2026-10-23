@@ -31,23 +31,23 @@ interface FontOption {
 }
 
 export const FONTS: FontOption[] = [
-  // Serif
-  { name: "Playfair Display", category: "serif", cssFamily: "'Playfair Display', Georgia, serif", vibe: "Klassiek & Luxe", idealFor: "Mode, high-end horeca, advocatuur" },
-  { name: "Lora", category: "serif", cssFamily: "'Lora', Georgia, serif", vibe: "Warm & Literair", idealFor: "Boeken, consultancy, journalistiek" },
-  { name: "DM Serif Display", category: "serif", cssFamily: "'DM Serif Display', Georgia, serif", vibe: "Krachtig & Statig", idealFor: "Redactie, ambachtelijke merken" },
-  { name: "Zilla Slab", category: "serif", cssFamily: "'Zilla Slab', Georgia, serif", vibe: "Robuust & Industrieel", idealFor: "Techniek, constructie, werkplaats" },
+  // 1. Serif - Volledig verschillende stijlen
+  { name: "Playfair Display", category: "serif", cssFamily: "'Playfair Display', Georgia, serif", vibe: "Luxe & Haute Couture", idealFor: "Mode, high-end horeca, cosmetica, luxe merken" },
+  { name: "Cinzel", category: "serif", cssFamily: "'Cinzel', Georgia, serif", vibe: "Klassiek & Monumentaal", idealFor: "Advocatuur, consultancy, directie, statige merken" },
+  { name: "Abril Fatface", category: "serif", cssFamily: "'Abril Fatface', serif", vibe: "Vintage & Krachtig", idealFor: "Creatieve bureaus, ambacht, magazine-koppen" },
+  { name: "DM Serif Display", category: "serif", cssFamily: "'DM Serif Display', Georgia, serif", vibe: "Warm & Authentiek", idealFor: "Koffiebranderijen, uitgeverijen, journalistiek" },
 
-  // Sans-serif
-  { name: "Montserrat", category: "sans", cssFamily: "'Montserrat', system-ui, sans-serif", vibe: "Modern & Geometrisch", idealFor: "Startups, architectuur, marketing" },
-  { name: "Inter", category: "sans", cssFamily: "'Inter', system-ui, sans-serif", vibe: "Strak & Neutraal", idealFor: "Software, tech, moderne diensten" },
-  { name: "Archivo", category: "sans", cssFamily: "'Archivo', system-ui, sans-serif", vibe: "Krachtig & Doeltreffend", idealFor: "Bouw, automotive, transport" },
-  { name: "Work Sans", category: "sans", cssFamily: "'Work Sans', system-ui, sans-serif", vibe: "Vriendelijk & Zakelijk", idealFor: "HR, onderwijs, financiën" },
+  // 2. Sans-serif & Display - Volledig verschillende stijlen
+  { name: "Bebas Neue", category: "sans", cssFamily: "'Bebas Neue', sans-serif", vibe: "Impactvol & Stoer (All-Caps)", idealFor: "Bouw, fitness, automotive, no-nonsense merken" },
+  { name: "Montserrat", category: "sans", cssFamily: "'Montserrat', sans-serif", vibe: "Modern & Geometrisch", idealFor: "Architectuur, design, startups, e-commerce" },
+  { name: "Space Grotesk", category: "sans", cssFamily: "'Space Grotesk', sans-serif", vibe: "Futuristisch & Tech", idealFor: "SaaS, AI, software, innovatieve platforms" },
+  { name: "Work Sans", category: "sans", cssFamily: "'Work Sans', sans-serif", vibe: "Vriendelijk & Zakelijk", idealFor: "Dienstverlening, HR, onderwijs, finance" },
 
-  // Script
-  { name: "Caveat", category: "script", cssFamily: "'Caveat', cursive", vibe: "Persoonlijk & Spontaan", idealFor: "Koffietentjes, creatieven, workshops" },
-  { name: "Dancing Script", category: "script", cssFamily: "'Dancing Script', cursive", vibe: "Vloeiend & Feestelijk", idealFor: "Evenementen, patisserie, bloemen" },
-  { name: "Pacifico", category: "script", cssFamily: "'Pacifico', cursive", vibe: "Retro & Zomers", idealFor: "IJssalons, foodtrucks, surf/outdoor" },
-  { name: "Satisfy", category: "script", cssFamily: "'Satisfy', cursive", vibe: "Elegant & Handgeschreven", idealFor: "Boetieks, handgemaakt, styling" },
+  // 3. Script & Karakter - Volledig verschillende stijlen
+  { name: "Pacifico", category: "script", cssFamily: "'Pacifico', cursive", vibe: "Retro & Zomers", idealFor: "Foodtrucks, ijssalons, outdoor, festivals" },
+  { name: "Caveat", category: "script", cssFamily: "'Caveat', cursive", vibe: "Persoonlijk & Spontaan", idealFor: "Koffiebarretjes, illustratoren, workshops" },
+  { name: "Dancing Script", category: "script", cssFamily: "'Dancing Script', cursive", vibe: "Sierlijk & Feestelijk", idealFor: "Patisserie, bloemisten, styling, bruiloften" },
+  { name: "Permanent Marker", category: "script", cssFamily: "'Permanent Marker', cursive", vibe: "Rauw & Gedurfd", idealFor: "Streetwear, barber shops, craft beer, actie" },
 ];
 
 export function TypografieMatcher({
@@ -330,7 +330,7 @@ export function TypografieMatcher({
         <button
           type="button"
           onClick={confirmTypography}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#dfb25a] to-[#f7d57f] text-black font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg transition-all flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary-start,#dfb25a)] to-[var(--brand-primary-end,#f7d57f)] text-[var(--on-primary,#000000)] font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-lg transition-all flex items-center justify-center gap-2"
         >
           <span>Bevestig Typografie &amp; Naar Stap 5: Fotografie</span>
           <span>→</span>
